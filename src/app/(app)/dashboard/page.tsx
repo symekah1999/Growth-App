@@ -3,10 +3,11 @@ import { goals, habitLogs, habits, mantras, todos, bibleBooks, recoveryTrackers 
 import { requireUser } from "@/lib/auth";
 import { and, eq, gte } from "drizzle-orm";
 import { Card, ProgressBar, ButtonLink, Badge } from "@/components/ui";
-import { getQuoteOfTheDay, getVerseOfTheDay } from "@/lib/daily";
+import { getPrayerOfTheDay, getQuoteOfTheDay, getVerseOfTheDay } from "@/lib/daily";
 import { streakDayCount, todayISO } from "@/lib/utils";
 import { computeStreaks } from "@/lib/streaks";
 import { HabitConsistencyChart } from "@/components/charts/HabitConsistencyChart";
+import { QuickLinks } from "@/components/QuickLinks";
 import { Bot } from "lucide-react";
 import Link from "next/link";
 
@@ -33,6 +34,8 @@ export default async function DashboardPage() {
     getQuoteOfTheDay(user.id),
     db.select().from(recoveryTrackers).where(and(eq(recoveryTrackers.userId, user.id), eq(recoveryTrackers.active, true))),
   ]);
+
+  const prayer = getPrayerOfTheDay();
 
   const since = new Date();
   since.setDate(since.getDate() - 14);
@@ -84,6 +87,11 @@ export default async function DashboardPage() {
         </div>
       </Card>
 
+      <div className="mb-6">
+        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-500">Jump to</p>
+        <QuickLinks />
+      </div>
+
       <div className="mb-6 grid gap-4 sm:grid-cols-2">
         {verse ? (
           <Card className="border-indigo-900/60 bg-indigo-950/20">
@@ -92,6 +100,13 @@ export default async function DashboardPage() {
             <p className="mt-2 text-sm text-neutral-400">
               {verse.book} {verse.chapter}:{verse.verse}
             </p>
+
+            {prayer && (
+              <div className="mt-4 border-t border-indigo-900/40 pt-3">
+                <p className="text-xs font-medium uppercase tracking-wide text-indigo-400">{prayer.title}</p>
+                <p className="mt-1.5 text-sm leading-relaxed text-neutral-300">{prayer.text}</p>
+              </div>
+            )}
           </Card>
         ) : (
           booksSeeded.length === 0 && (

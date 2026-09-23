@@ -3,6 +3,7 @@ import { bibleBooks, bibleVerses, quotes } from "@/db/schema";
 import { and, eq, sql } from "drizzle-orm";
 import { dailyIndex, todayISO } from "@/lib/utils";
 import { FEATURED_REFERENCES } from "@/db/seed-data/books";
+import { getPrayerForTheme } from "@/db/seed-data/prayers";
 
 /** Verse of the day: deterministic pick from a curated reference list, so it
  * changes once every 24h and is the same all day without needing a cron job
@@ -28,6 +29,16 @@ export async function getVerseOfTheDay(dateISO = todayISO()) {
     .limit(1);
 
   return row ?? null;
+}
+
+/** Prayer of the day: paired by theme to the same featured reference that
+ * getVerseOfTheDay picks, so the two are always consistent with each other
+ * for a given date. No DB row, no API call — same deterministic approach. */
+export function getPrayerOfTheDay(dateISO = todayISO()) {
+  const idx = dailyIndex(dateISO, FEATURED_REFERENCES.length);
+  const ref = FEATURED_REFERENCES[idx];
+  if (!ref) return null;
+  return getPrayerForTheme(ref.theme);
 }
 
 /** Quote of the day: deterministic pick from this user's own quote bank. */

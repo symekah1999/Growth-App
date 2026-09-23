@@ -81,7 +81,7 @@ Visit http://localhost:3000 — you'll be redirected to `/login`. Sign in with t
 2. In Vercel: **New Project** → import the repo.
 3. Add the same environment variables from `.env.local` (`DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `OWNER_EMAIL`, `ANTHROPIC_API_KEY`) in Vercel's Project Settings → Environment Variables.
 4. Deploy. Vercel builds and hosts the app; it calls Neon over HTTP (via `@neondatabase/serverless`) and Supabase for auth — no server to manage.
-5. Once deployed, it's "downloadable" as a **PWA**: open the site on your phone and choose "Add to Home Screen" (iOS Safari) or the install icon in the address bar (Android Chrome / desktop Chrome) to install it like a native app. A basic PWA manifest is already included (`public/manifest.json` / `src/app/layout.tsx` metadata) — see the note in "What's not built yet" if you want offline support too.
+5. Once deployed, it's "downloadable" as a **PWA**: open the site on your phone and choose "Add to Home Screen" (iOS Safari) or the install icon in the address bar (Android Chrome / desktop Chrome) to install it like a native app. The manifest (`public/manifest.json`), proper PNG icons (`public/icon-192.png`, `icon-512.png`, `icon-maskable-512.png`), and a minimal offline-shell service worker (`public/sw.js`, registered in `src/app/layout.tsx`) are all included, so the install prompt should appear on its own after a visit or two.
 
 ## Pushing this project to GitHub
 
@@ -160,12 +160,16 @@ To change the model later, set `ANTHROPIC_MODEL` in your environment — check [
 
 Tracks one or more things you're recovering from against a day-count target (defaults to 1,000 days, but you can set any target per tracker). The day counter is purely date-based — it doesn't depend on you logging in daily. Optional daily check-ins let you note craving level and how the day went, without being required to keep the streak counter itself accurate. A "reset" doesn't delete history: it logs the streak that just ended (so your longest streak stays on record) and starts day one over from today. Milestone badges fire at 1, 7, 30, 60, 90, 180, 365, 500, 730, and 1,000 days.
 
+### Dashboard quick links & prayer of the day
+
+The dashboard (`src/components/QuickLinks.tsx`) shows an icon grid to every section for fast navigation, alongside the existing sidebar. The verse of the day is now paired with a matching **prayer of the day** (`src/db/seed-data/prayers.ts`): each featured verse (`FEATURED_REFERENCES` in `src/db/seed-data/books.ts`) is tagged with a theme (hope, strength, trust, peace, courage, etc.), and a short curated prayer is picked for that theme — deterministic, no API call, same approach as the verse/quote of the day.
+
 ## What's not built yet (ideas for next passes)
 
 - Rich text / markdown rendering in the journal (currently plain text)
 - Recurring/repeating to-dos (e.g. auto-recreate a daily to-do each morning)
 - Charts (the `recharts` package is already installed for this — e.g. a net-worth-over-time or habit-consistency chart)
-- True offline-capable PWA (service worker + offline cache) — right now "installable" works, but it still needs a network connection
+- Deeper offline support (the current service worker caches the app shell only, not your data)
 - Email/push reminders (e.g. "you haven't journaled today")
 - CSV export of your data
 
