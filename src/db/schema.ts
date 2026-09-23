@@ -105,7 +105,6 @@ export const habits = pgTable(
 export const habitLogs = pgTable(
   "habit_logs",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
     habitId: uuid("habit_id")
       .notNull()
       .references(() => habits.id, { onDelete: "cascade" }),
@@ -310,7 +309,6 @@ export const recoveryResets = pgTable(
 export const recoveryCheckins = pgTable(
   "recovery_checkins",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
     trackerId: uuid("tracker_id")
       .notNull()
       .references(() => recoveryTrackers.id, { onDelete: "cascade" }),
