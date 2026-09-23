@@ -1,10 +1,12 @@
 import { db } from "@/db";
 import { journalEntries } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
-import { and, desc, eq, ilike, or } from "drizzle-orm";
+import { and, asc, desc, eq, gte, ilike, or } from "drizzle-orm";
 import { PageHeader, Card, EmptyState, Input, Textarea, Button, Badge } from "@/components/ui";
 import { createEntry, deleteEntry } from "./actions";
-import { formatDate, todayISO } from "@/lib/utils";
+import { addDaysISO, formatDate, todayISO } from "@/lib/utils";
+import { MOOD_SCORE } from "@/lib/mood";
+import { TrendLine } from "@/components/charts/TrendLine";
 import Link from "next/link";
 
 const MOODS = ["grateful", "energized", "neutral", "anxious", "low", "reflective", "hopeful"];
@@ -31,6 +33,24 @@ export default async function JournalPage({
     .where(and(...conditions))
     .orderBy(desc(journalEntries.entryDate), desc(journalEntries.createdAt))
     .limit(100);
+
+  // Mood trend: average mood score per day over the last 60 days
+  const since = addDaysISO(todayISO(), -59);
+  const recent = await db
+    .select({ entryDate: journalEntries.entryDate, mood: journalEntries.mood })
+    .from(journalEntries)
+    .where(and(eq(journalEntries.userId, user.id), gte(journalEntries.entryDate, since)))
+    .orderBy(asc(journalEntries.entryDate));
+  const byDay = new Map<string, number[]>();
+  for (const e of recent) {
+    if (!e.mood || MOOD_SCORE[e.mood] === undefined) continue;
+    byDay.set(e.entryDate, [...(byDay.get(e.entryDate) ?? []), MOOD_SCORE[e.mood]]);
+  }
+  const moodSeries = [...byDay.entries()].map(([d, scores]) => ({
+    label: formatDate(d, { month: "short", day: "numeric" }),
+    value: Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10,
+  }));
+  const journalDays = new Set(recent.map((e) => e.entryDate)).size;
 
   return (
     <div>
@@ -66,6 +86,18 @@ export default async function JournalPage({
           </div>
         </form>
       </Card>
+
+      {moodSeries.length >= 2 && (
+        <Card className="mb-6">
+          <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-sm font-medium text-neutral-300">Mood — last 60 days</h2>
+            <span className="text-xs text-neutral-500">
+              journaled on <span className="font-medium text-neutral-300">{journalDays}</span> of 60 days
+            </span>
+          </div>
+          <TrendLine data={moodSeries} format="mood" domain={[-2, 2]} ticks={[-2, -1, 0, 1, 2]} seriesName="Mood" color="#0ea5e9" />
+        </Card>
+      )}
 
       <form className="mb-4 flex flex-wrap gap-2" action="/journal">
         <Input name="q" defaultValue={q ?? ""} placeholder="Search entries..." className="max-w-xs" />

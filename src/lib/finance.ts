@@ -23,7 +23,7 @@ export function simulatePayoff(
   debts: DebtInput[],
   extraMonthlyBudget: number,
   strategy: "snowball" | "avalanche",
-): { order: PayoffPlanStep[]; totalMonths: number; totalInterest: number } {
+): { order: PayoffPlanStep[]; totalMonths: number; totalInterest: number; balanceByMonth: number[] } {
   const working = debts
     .filter((d) => d.balance > 0)
     .map((d) => ({ ...d, remaining: d.balance, interestPaid: 0, paidOffMonth: null as number | null }));
@@ -34,6 +34,7 @@ export function simulatePayoff(
 
   let month = 0;
   let extraPool = extraMonthlyBudget;
+  const balanceByMonth: number[] = [working.reduce((s, d) => s + d.remaining, 0)];
   const maxMonths = 600; // 50 years safety cap
 
   while (working.some((d) => d.remaining > 0.01) && month < maxMonths) {
@@ -73,6 +74,8 @@ export function simulatePayoff(
         extraPool += d.minPayment;
       }
     }
+
+    balanceByMonth.push(Math.max(0, working.reduce((s, d) => s + Math.max(0, d.remaining), 0)));
   }
 
   const stepOrder: PayoffPlanStep[] = order.map((o) => {
@@ -89,6 +92,7 @@ export function simulatePayoff(
     order: stepOrder,
     totalMonths: month,
     totalInterest: Math.round(working.reduce((s, d) => s + d.interestPaid, 0) * 100) / 100,
+    balanceByMonth,
   };
 }
 

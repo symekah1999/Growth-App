@@ -58,8 +58,34 @@ export async function addMilestone(goalId: string, formData: FormData) {
   await requireUser();
   const title = String(formData.get("title") ?? "").trim();
   if (!title) return;
+  const dueDate = String(formData.get("dueDate") ?? "") || null;
 
-  await db.insert(goalMilestones).values({ goalId, title });
+  await db.insert(goalMilestones).values({ goalId, title, dueDate });
+  revalidatePath(`/goals/${goalId}`);
+}
+
+export async function updateGoalDeadline(formData: FormData) {
+  const user = await requireUser();
+  const id = String(formData.get("id"));
+  const targetDate = String(formData.get("targetDate") ?? "") || null;
+
+  await db
+    .update(goals)
+    .set({ targetDate, updatedAt: new Date() })
+    .where(and(eq(goals.id, id), eq(goals.userId, user.id)));
+
+  revalidatePath("/goals");
+  revalidatePath(`/goals/${id}`);
+  revalidatePath("/dashboard");
+}
+
+export async function updateMilestoneDueDate(formData: FormData) {
+  await requireUser();
+  const id = String(formData.get("id"));
+  const goalId = String(formData.get("goalId"));
+  const dueDate = String(formData.get("dueDate") ?? "") || null;
+
+  await db.update(goalMilestones).set({ dueDate, updatedAt: new Date() }).where(eq(goalMilestones.id, id));
   revalidatePath(`/goals/${goalId}`);
 }
 

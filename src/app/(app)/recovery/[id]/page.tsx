@@ -3,11 +3,15 @@ import { recoveryCheckins, recoveryResets, recoveryTrackers } from "@/db/schema"
 import { requireUser } from "@/lib/auth";
 import { and, desc, eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
-import { PageHeader, Card, Textarea, Button, ProgressBar, Badge, Select } from "@/components/ui";
+import { PageHeader, Card, Textarea, Button, Badge, Select } from "@/components/ui";
 import { addCheckin, logReset, updateTrackerNotes } from "../actions";
 import { formatDate, streakDayCount, todayISO } from "@/lib/utils";
+import { recoveryInsights, RECOVERY_MILESTONES } from "@/lib/recovery-insights";
+import { ProgressRing } from "@/components/ProgressRing";
+import { InsightList } from "@/components/InsightList";
+import { TrendLine } from "@/components/charts/TrendLine";
 
-const MILESTONES = [1, 7, 30, 60, 90, 180, 365, 500, 730, 1000];
+const MILESTONES = RECOVERY_MILESTONES;
 const CRAVING_LABELS = ["", "none", "mild", "moderate", "strong", "intense"];
 
 export default async function RecoveryTrackerPage({ params }: { params: Promise<{ id: string }> }) {
@@ -32,26 +36,54 @@ export default async function RecoveryTrackerPage({ params }: { params: Promise<
   const pct = Math.min(100, (currentDays / tracker.targetDays) * 100);
   const addCheckinWithId = addCheckin.bind(null, id);
   const todayCheckin = checkins.find((c) => c.checkinDate === todayISO());
+  const totalDaysAllAttempts = currentDays + resets.reduce((s, r) => s + r.streakDaysAtReset, 0);
+  const insights = recoveryInsights({
+    name: tracker.name,
+    currentDays,
+    targetDays: tracker.targetDays,
+    pastStreaks: resets.map((r) => r.streakDaysAtReset),
+    checkins,
+    checkedInToday: Boolean(todayCheckin),
+  });
+  const cravingSeries = checkins
+    .filter((c) => c.cravingLevel !== null)
+    .slice()
+    .reverse()
+    .map((c) => ({ label: formatDate(c.checkinDate, { month: "short", day: "numeric" }), value: c.cravingLevel }));
 
   return (
     <div>
       <PageHeader title={tracker.name} subtitle={`Day one: ${formatDate(tracker.startDate)}`} />
 
-      <Card className="mb-6">
-        <div className="flex items-end justify-between">
-          <div>
-            <p className="text-4xl font-semibold text-neutral-50">
-              {currentDays}
-              <span className="text-lg font-normal text-neutral-500"> / {tracker.targetDays} days</span>
-            </p>
-            <p className="mt-1 text-sm text-neutral-500">longest streak: {longest} days</p>
+      <div className="mb-6 grid gap-4 lg:grid-cols-[auto_1fr]">
+        <Card className="flex flex-col items-center justify-center">
+          <ProgressRing value={currentDays} target={tracker.targetDays} milestones={MILESTONES} size={220} />
+          <div className="mt-3 grid w-full grid-cols-3 gap-2 text-center">
+            <div>
+              <p className="text-lg font-semibold text-neutral-100">{pct.toFixed(1)}%</p>
+              <p className="text-[11px] text-neutral-500">of target</p>
+            </div>
+            <div>
+              <p className="text-lg font-semibold text-neutral-100">{longest}</p>
+              <p className="text-[11px] text-neutral-500">longest streak</p>
+            </div>
+            <div>
+              <p className="text-lg font-semibold text-neutral-100">{totalDaysAllAttempts}</p>
+              <p className="text-[11px] text-neutral-500">total days</p>
+            </div>
           </div>
-          <Badge>{pct.toFixed(1)}% to goal</Badge>
-        </div>
-        <ProgressBar value={pct} className="mt-4" />
+        </Card>
 
-        <div className="mt-5 flex flex-wrap gap-2">
-          {MILESTONES.map((m) => (
+        <Card>
+          <h2 className="mb-3 text-sm font-medium text-neutral-300">Where you are right now</h2>
+          <InsightList insights={insights} />
+        </Card>
+      </div>
+
+      <Card className="mb-6">
+        <h2 className="mb-3 text-sm font-medium text-neutral-300">Milestones</h2>
+        <div className="flex flex-wrap gap-2">
+          {MILESTONES.filter((m) => m <= tracker.targetDays).map((m) => (
             <Badge
               key={m}
               className={
@@ -60,11 +92,21 @@ export default async function RecoveryTrackerPage({ params }: { params: Promise<
                   : "border-neutral-800 text-neutral-600"
               }
             >
-              {currentDays >= m ? "✓" : "—"} day {m}
+              {currentDays >= m ? "✓" : `${m - currentDays}d to`} day {m}
             </Badge>
           ))}
         </div>
       </Card>
+
+      {cravingSeries.length >= 2 && (
+        <Card className="mb-6">
+          <div className="mb-1 flex items-baseline justify-between">
+            <h2 className="text-sm font-medium text-neutral-300">Craving level — recent check-ins</h2>
+            <span className="text-xs text-neutral-500">1 none → 5 intense · lower is better</span>
+          </div>
+          <TrendLine data={cravingSeries} format="craving" domain={[1, 5]} ticks={[1, 2, 3, 4, 5]} seriesName="Craving" color="#e66767" />
+        </Card>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>

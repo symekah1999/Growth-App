@@ -164,6 +164,27 @@ Tracks one or more things you're recovering from against a day-count target (def
 
 The dashboard (`src/components/QuickLinks.tsx`) shows an icon grid to every section for fast navigation, alongside the existing sidebar. The verse of the day is now paired with a matching **prayer of the day** (`src/db/seed-data/prayers.ts`): each featured verse (`FEATURED_REFERENCES` in `src/db/seed-data/books.ts`) is tagged with a theme (hope, strength, trust, peace, courage, etc.), and a short curated prayer is picked for that theme — deterministic, no API call, same approach as the verse/quote of the day.
 
+### Goals: deadlines & pacing
+
+Every active goal with a deadline is compared with a straight-line pace from the day it was created to its deadline. It's labelled **On track**, **Slightly behind**, **At risk**, or **Overdue**, with a countdown, a tick on the progress bar showing where you'd be on a steady pace, and the % per week needed to finish on time. Milestones can carry their own due dates as dated checkpoints. The Goals page also has a timeline chart of every goal against its deadline. Logic: `src/lib/pacing.ts`.
+
+### Recovery auto-comments
+
+`src/lib/recovery-insights.ts` generates supportive, stage-aware comments from your day count, reset history, and check-ins. These include milestone countdowns, personal-best tracking, craving-trend insights, and messages after a reset that count the days you've already built. Each tracker shows a progress ring toward its target, and a craving-trend chart once you've logged a few check-ins.
+
+### Progress page (`/progress`)
+
+- **Life score (0–100):** a weekly blend of habit consistency, journaling, goal pacing, to-dos, and recovery. It shows the change vs last week and an 8-week trend.
+- **Weekly review:** what went well, what needs attention, and deadlines coming up in the next 7 days.
+- **Life areas:** average progress of active goals per area, showing which areas have no active goals.
+- **Achievements:** 27 badges across journaling, habits, goals, recovery, finance and mind & faith, each with its progress toward unlocking.
+
+All of it is computed from your existing data (`src/lib/progress.ts`), so no extra tables are needed.
+
+### More charts
+
+A 26-week habit consistency heatmap on Habits, a mood trend on Journal, a savings growth line with target pacing on Savings, and a projected-balance chart with your debt-free date on Debts.
+
 ## What's not built yet (ideas for next passes)
 
 - Rich text / markdown rendering in the journal (currently plain text)

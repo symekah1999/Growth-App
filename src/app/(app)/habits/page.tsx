@@ -4,10 +4,12 @@ import { requireUser } from "@/lib/auth";
 import { and, desc, eq, gte } from "drizzle-orm";
 import { PageHeader, Card, EmptyState, Input, Textarea, Button, Select } from "@/components/ui";
 import { createHabit, toggleTodayLog, archiveHabit, deleteHabit } from "./actions";
-import { todayISO } from "@/lib/utils";
+import { addDaysISO, todayISO } from "@/lib/utils";
 import { computeStreaks } from "@/lib/streaks";
+import { DayHeatmap } from "@/components/charts/DayHeatmap";
 
 const DAYS_BACK = 70;
+const HEATMAP_DAYS = 182; // ~26 weeks
 
 export default async function HabitsPage() {
   const user = await requireUser();
@@ -19,9 +21,7 @@ export default async function HabitsPage() {
     .where(and(eq(habits.userId, user.id), eq(habits.archived, false)))
     .orderBy(desc(habits.createdAt));
 
-  const since = new Date();
-  since.setDate(since.getDate() - DAYS_BACK);
-  const sinceISO = since.toISOString().slice(0, 10);
+  const sinceISO = addDaysISO(today, -(HEATMAP_DAYS - 1));
 
   const habitsWithData = await Promise.all(
     activeHabits.map(async (h) => {
@@ -35,13 +35,24 @@ export default async function HabitsPage() {
     }),
   );
 
+  // Consistency heatmap: share of active habits done each day (only counting habits that existed that day)
+  const heatCells = Array.from({ length: HEATMAP_DAYS }, (_, i) => {
+    const date = addDaysISO(sinceISO, i);
+    const existing = habitsWithData.filter((h) => h.habit.createdAt.toISOString().slice(0, 10) <= date);
+    const done = existing.filter((h) => h.logDates.has(date)).length;
+    const value = existing.length > 0 ? done / existing.length : 0;
+    return {
+      date,
+      value,
+      detail: existing.length === 0 ? "No habits yet" : `${done} of ${existing.length} habit${existing.length === 1 ? "" : "s"} done`,
+    };
+  });
+  const last30 = heatCells.slice(-30).filter((c) => c.detail !== "No habits yet");
+  const avg30 = last30.length ? Math.round((last30.reduce((s, c) => s + c.value, 0) / last30.length) * 100) : 0;
+  const perfectDays = heatCells.filter((c) => c.value === 1).length;
+
   // build last DAYS_BACK day columns (oldest -> newest)
-  const days: string[] = [];
-  for (let i = DAYS_BACK - 1; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    days.push(d.toISOString().slice(0, 10));
-  }
+  const days: string[] = Array.from({ length: DAYS_BACK }, (_, i) => addDaysISO(today, i - (DAYS_BACK - 1)));
 
   return (
     <div>
@@ -64,6 +75,23 @@ export default async function HabitsPage() {
           </div>
         </form>
       </Card>
+
+      {habitsWithData.length > 0 && (
+        <Card className="mb-6">
+          <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-sm font-medium text-neutral-300">Consistency — last 26 weeks</h2>
+            <div className="flex gap-4 text-xs text-neutral-400">
+              <span>
+                <span className="font-semibold text-neutral-100">{avg30}%</span> avg, last 30 days
+              </span>
+              <span>
+                <span className="font-semibold text-neutral-100">{perfectDays}</span> perfect days
+              </span>
+            </div>
+          </div>
+          <DayHeatmap cells={heatCells} emptyLabel="none" />
+        </Card>
+      )}
 
       {habitsWithData.length === 0 ? (
         <EmptyState title="No habits yet" subtitle="Add one above to start building your streak." />

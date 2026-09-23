@@ -39,3 +39,22 @@ export function dailyIndex(dateISO: string, poolSize: number) {
   }
   return hash % poolSize;
 }
+
+/** Whole days from `fromISO` to `toISO` (positive if `toISO` is later). */
+export function daysBetween(fromISO: string, toISO: string) {
+  const a = new Date(fromISO + "T00:00:00Z").getTime();
+  const b = new Date(toISO + "T00:00:00Z").getTime();
+  return Math.round((b - a) / 86400000);
+}
+
+/** ISO date `n` days after (or before, if negative) `iso`. */
+export function addDaysISO(iso: string, n: number) {
+  const d = new Date(iso + "T00:00:00Z");
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+/** ISO date (YYYY-MM-DD) of a Date or timestamp. */
+export function toISODate(d: Date | string) {
+  return (typeof d === "string" ? new Date(d) : d).toISOString().slice(0, 10);
+}

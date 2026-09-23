@@ -6,6 +6,7 @@ import { PageHeader, Card, EmptyState, Input, Button, Badge, Select } from "@/co
 import { createDebt, recordPayment, archiveDebt, deleteDebt } from "./actions";
 import { currency } from "@/lib/utils";
 import { simulatePayoff } from "@/lib/finance";
+import { TrendLine } from "@/components/charts/TrendLine";
 
 export default async function DebtsPage({
   searchParams,
@@ -41,6 +42,26 @@ export default async function DebtsPage({
           chosenStrategy,
         )
       : null;
+
+  const reachable = plan !== null && plan.totalMonths < 600;
+  const debtFreeDate = reachable
+    ? (() => {
+        const d = new Date();
+        d.setMonth(d.getMonth() + plan!.totalMonths);
+        return d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+      })()
+    : null;
+  const projection =
+    plan && reachable
+      ? plan.balanceByMonth.map((b, i) => {
+          const d = new Date();
+          d.setMonth(d.getMonth() + i);
+          return { label: d.toLocaleDateString("en-US", { month: "short", year: "2-digit" }), value: Math.round(b) };
+        })
+      : [];
+  const totalPrincipal = rows.reduce((s, d) => s + Number(d.principal), 0);
+  const paidSoFar = Math.max(0, totalPrincipal - totalBalance);
+  const paidPct = totalPrincipal > 0 ? Math.round((paidSoFar / totalPrincipal) * 100) : 0;
 
   return (
     <div>
@@ -136,7 +157,26 @@ export default async function DebtsPage({
               </Button>
             </form>
 
-            {plan && (
+            {plan && !reachable && (
+              <p className="mb-3 rounded-lg border border-[#d03b3b]/50 bg-[#d03b3b]/10 px-3 py-2 text-sm text-[#f07070]">
+                At these payments the balance never reaches zero — interest is outpacing what you pay. Raise the extra budget above.
+              </p>
+            )}
+
+            {projection.length >= 2 && (
+              <div className="mb-4">
+                <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2 text-xs text-neutral-500">
+                  <span>Projected total balance</span>
+                  <span>
+                    {paidPct}% of original debt already paid · debt-free by{" "}
+                    <span className="font-medium text-neutral-200">{debtFreeDate}</span>
+                  </span>
+                </div>
+                <TrendLine data={projection} format="currency" domain={[0, projection[0].value * 1.05]} seriesName="Balance" color="#e66767" />
+              </div>
+            )}
+
+            {plan && reachable && (
               <div>
                 <p className="mb-2 text-sm text-neutral-300">
                   Debt-free in <span className="font-semibold text-neutral-100">{plan.totalMonths} months</span>, paying{" "}

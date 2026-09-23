@@ -1,13 +1,15 @@
 import { db } from "@/db";
-import { recoveryResets, recoveryTrackers } from "@/db/schema";
+import { recoveryCheckins, recoveryResets, recoveryTrackers } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { desc, eq } from "drizzle-orm";
-import { PageHeader, Card, EmptyState, Input, Textarea, Button, ProgressBar, Badge } from "@/components/ui";
+import { PageHeader, Card, EmptyState, Input, Textarea, Button, Badge } from "@/components/ui";
 import { createTracker, archiveTracker, reactivateTracker, deleteTracker } from "./actions";
-import { formatDate, streakDayCount } from "@/lib/utils";
+import { formatDate, streakDayCount, todayISO } from "@/lib/utils";
+import { headlineInsight, RECOVERY_MILESTONES } from "@/lib/recovery-insights";
+import { ProgressRing } from "@/components/ProgressRing";
 import Link from "next/link";
 
-const MILESTONES = [1, 7, 30, 60, 90, 180, 365, 500, 730, 1000];
+const MILESTONES = RECOVERY_MILESTONES;
 
 export default async function RecoveryPage() {
   const user = await requireUser();
@@ -25,10 +27,24 @@ export default async function RecoveryPage() {
         .from(recoveryResets)
         .where(eq(recoveryResets.trackerId, t.id))
         .orderBy(desc(recoveryResets.resetDate));
+      const checkins = await db
+        .select({ checkinDate: recoveryCheckins.checkinDate, cravingLevel: recoveryCheckins.cravingLevel })
+        .from(recoveryCheckins)
+        .where(eq(recoveryCheckins.trackerId, t.id))
+        .orderBy(desc(recoveryCheckins.checkinDate))
+        .limit(14);
       const currentDays = streakDayCount(t.startDate);
       const longest = Math.max(currentDays, ...resets.map((r) => r.streakDaysAtReset));
       const nextMilestone = MILESTONES.find((m) => m > currentDays) ?? null;
-      return { tracker: t, resets, currentDays, longest, nextMilestone };
+      const insight = headlineInsight({
+        name: t.name,
+        currentDays,
+        targetDays: t.targetDays,
+        pastStreaks: resets.map((r) => r.streakDaysAtReset),
+        checkins,
+        checkedInToday: checkins[0]?.checkinDate === todayISO(),
+      });
+      return { tracker: t, resets, currentDays, longest, nextMilestone, insight };
     }),
   );
 
@@ -63,29 +79,32 @@ export default async function RecoveryPage() {
         <EmptyState title="Nothing tracked yet" subtitle="Add one above whenever you're ready." />
       ) : (
         <div className="space-y-4">
-          {withData.map(({ tracker: t, currentDays, longest, nextMilestone, resets }) => {
+          {withData.map(({ tracker: t, currentDays, longest, nextMilestone, resets, insight }) => {
             const pct = Math.min(100, (currentDays / t.targetDays) * 100);
             return (
               <Card key={t.id} className={!t.active ? "opacity-60" : undefined}>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <Link href={`/recovery/${t.id}`} className="font-medium text-neutral-100 hover:underline">
-                      {t.name}
-                    </Link>
-                    <p className="mt-0.5 text-xs text-neutral-500">since {formatDate(t.startDate)}</p>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                  <div className="self-center">
+                    <ProgressRing value={currentDays} target={t.targetDays} milestones={MILESTONES} size={132} />
                   </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-semibold text-neutral-50">
-                      {currentDays}
-                      <span className="text-sm font-normal text-neutral-500"> / {t.targetDays}</span>
-                    </p>
-                    <p className="text-xs text-neutral-500">days</p>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <Link href={`/recovery/${t.id}`} className="text-lg font-medium text-neutral-100 hover:underline">
+                          {t.name}
+                        </Link>
+                        <p className="mt-0.5 text-xs text-neutral-500">
+                          since {formatDate(t.startDate)} · {pct.toFixed(1)}% of the way
+                        </p>
+                      </div>
+                    </div>
+                    {t.active && (
+                      <div className="mt-3 rounded-lg border border-neutral-800 bg-neutral-950/40 px-3 py-2">
+                        <p className="text-sm font-medium text-neutral-200">{insight.title}</p>
+                        <p className="mt-0.5 text-xs leading-relaxed text-neutral-400">{insight.text}</p>
+                      </div>
+                    )}
                   </div>
-                </div>
-
-                <div className="mt-3 flex items-center gap-3">
-                  <ProgressBar value={pct} className="flex-1" />
-                  <span className="whitespace-nowrap text-xs text-neutral-500">{pct.toFixed(1)}%</span>
                 </div>
 
                 <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-neutral-500">

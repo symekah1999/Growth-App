@@ -77,6 +77,7 @@ export const goalMilestones = pgTable(
       .references(() => goals.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
     done: boolean("done").notNull().default(false),
+    dueDate: date("due_date"), // optional checkpoint deadline
     sortOrder: integer("sort_order").notNull().default(0),
     ...timestamps,
   },

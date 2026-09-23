@@ -1,0 +1,1 @@
+ALTER TABLE "goal_milestones" ADD COLUMN "due_date" date;

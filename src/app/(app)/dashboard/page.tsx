@@ -1,14 +1,19 @@
 import { db } from "@/db";
-import { goals, habitLogs, habits, mantras, todos, bibleBooks, recoveryTrackers } from "@/db/schema";
+import { goals, habitLogs, habits, mantras, todos, bibleBooks, recoveryTrackers, recoveryResets, recoveryCheckins } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
-import { and, eq, gte } from "drizzle-orm";
-import { Card, ProgressBar, ButtonLink, Badge } from "@/components/ui";
+import { and, desc, eq, gte } from "drizzle-orm";
+import { Card, ButtonLink, Badge } from "@/components/ui";
 import { getPrayerOfTheDay, getQuoteOfTheDay, getVerseOfTheDay } from "@/lib/daily";
 import { streakDayCount, todayISO } from "@/lib/utils";
 import { computeStreaks } from "@/lib/streaks";
 import { HabitConsistencyChart } from "@/components/charts/HabitConsistencyChart";
 import { QuickLinks } from "@/components/QuickLinks";
-import { Bot } from "lucide-react";
+import { ProgressRing } from "@/components/ProgressRing";
+import { PacingBadge, PacedProgressBar } from "@/components/PacingBadge";
+import { daysLeftLabel, goalPacing, pacingSortKey } from "@/lib/pacing";
+import { headlineInsight, RECOVERY_MILESTONES } from "@/lib/recovery-insights";
+import { achievements, lifeScore, loadProgressData } from "@/lib/progress";
+import { Bot, Trophy } from "lucide-react";
 import Link from "next/link";
 
 export default async function DashboardPage() {
@@ -36,6 +41,39 @@ export default async function DashboardPage() {
   ]);
 
   const prayer = getPrayerOfTheDay();
+
+  const progressData = await loadProgressData(user.id);
+  const score = lifeScore(progressData, today);
+  const badges = achievements(progressData, today);
+  const earnedCount = badges.filter((b) => b.earned).length;
+
+  const pacedGoals = activeGoals
+    .map((g) => ({ goal: g, pacing: goalPacing(g, today) }))
+    .sort((a, b) => pacingSortKey(a.pacing) - pacingSortKey(b.pacing));
+
+  const recoveryCards = await Promise.all(
+    activeRecovery.map(async (t) => {
+      const [resets, checkins] = await Promise.all([
+        db.select({ d: recoveryResets.streakDaysAtReset }).from(recoveryResets).where(eq(recoveryResets.trackerId, t.id)),
+        db
+          .select({ checkinDate: recoveryCheckins.checkinDate, cravingLevel: recoveryCheckins.cravingLevel })
+          .from(recoveryCheckins)
+          .where(eq(recoveryCheckins.trackerId, t.id))
+          .orderBy(desc(recoveryCheckins.checkinDate))
+          .limit(14),
+      ]);
+      const days = streakDayCount(t.startDate);
+      const insight = headlineInsight({
+        name: t.name,
+        currentDays: days,
+        targetDays: t.targetDays,
+        pastStreaks: resets.map((r) => r.d),
+        checkins,
+        checkedInToday: checkins[0]?.checkinDate === today,
+      });
+      return { tracker: t, days, insight };
+    }),
+  );
 
   const since = new Date();
   since.setDate(since.getDate() - 14);
@@ -77,13 +115,36 @@ export default async function DashboardPage() {
             <h1 className="text-2xl font-semibold tracking-tight text-neutral-50">Welcome back</h1>
             <p className="mt-1 text-sm text-neutral-400">{formatToday()}</p>
           </div>
-          <Link
-            href="/chat"
-            className="flex items-center gap-2 rounded-xl border border-indigo-800/60 bg-indigo-600/10 px-4 py-2.5 text-sm font-medium text-indigo-300 transition hover:bg-indigo-600/20"
-          >
-            <Bot size={16} />
-            Ask your assistant
-          </Link>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/progress"
+              className="flex items-center gap-3 rounded-xl border border-neutral-800 bg-neutral-950/40 px-4 py-2 transition hover:border-neutral-700"
+            >
+              <div>
+                <p className="text-[10px] uppercase tracking-wide text-neutral-500">Life score</p>
+                <p className="text-xl font-semibold text-neutral-50">
+                  {score.score ?? "—"}
+                  {score.delta !== null && score.delta !== 0 && (
+                    <span className={`ml-1.5 text-xs font-medium ${score.delta > 0 ? "text-[#4ade4a]" : "text-[#ec835a]"}`}>
+                      {score.delta > 0 ? "▲" : "▼"} {Math.abs(score.delta)}
+                    </span>
+                  )}
+                </p>
+              </div>
+              <div className="h-8 w-px bg-neutral-800" />
+              <div className="flex items-center gap-1.5 text-sm text-neutral-300">
+                <Trophy size={15} className="text-yellow-300" />
+                {earnedCount}/{badges.length}
+              </div>
+            </Link>
+            <Link
+              href="/chat"
+              className="flex items-center gap-2 rounded-xl border border-indigo-800/60 bg-indigo-600/10 px-4 py-2.5 text-sm font-medium text-indigo-300 transition hover:bg-indigo-600/20"
+            >
+              <Bot size={16} />
+              Ask your assistant
+            </Link>
+          </div>
         </div>
       </Card>
 
@@ -139,34 +200,29 @@ export default async function DashboardPage() {
         </Card>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {activeRecovery.length > 0 && (
-          <Card>
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-neutral-300">Recovery</p>
-              <ButtonLink href="/recovery" variant="ghost" className="!px-2 !py-1 text-xs">
-                Open
-              </ButtonLink>
-            </div>
-            <ul className="mt-3 space-y-2.5">
-              {activeRecovery.map((t) => {
-                const days = streakDayCount(t.startDate);
-                return (
-                  <li key={t.id}>
-                    <div className="flex items-center justify-between text-xs text-neutral-400">
-                      <span className="truncate">{t.name}</span>
-                      <span>
-                        {days}/{t.targetDays}
-                      </span>
-                    </div>
-                    <ProgressBar value={(days / t.targetDays) * 100} className="mt-1" />
-                  </li>
-                );
-              })}
-            </ul>
-          </Card>
-        )}
+      {recoveryCards.length > 0 && (
+        <div className="mb-4 grid gap-4 md:grid-cols-2">
+          {recoveryCards.map(({ tracker: t, days, insight }) => (
+            <Card key={t.id}>
+              <div className="flex items-center gap-4">
+                <ProgressRing value={days} target={t.targetDays} milestones={RECOVERY_MILESTONES} size={108} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <Link href={`/recovery/${t.id}`} className="truncate text-sm font-medium text-neutral-200 hover:underline">
+                      {t.name}
+                    </Link>
+                    <span className="shrink-0 text-xs text-neutral-500">recovery</span>
+                  </div>
+                  <p className="mt-1.5 text-sm font-medium text-neutral-100">{insight.title}</p>
+                  <p className="mt-0.5 line-clamp-3 text-xs leading-relaxed text-neutral-400">{insight.text}</p>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
 
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Card>
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-neutral-300">Today&apos;s to-dos</p>
@@ -210,17 +266,24 @@ export default async function DashboardPage() {
               Open
             </ButtonLink>
           </div>
-          {activeGoals.length === 0 ? (
+          {pacedGoals.length === 0 ? (
             <p className="mt-3 text-sm text-neutral-500">No active goals</p>
           ) : (
-            <ul className="mt-3 space-y-2.5">
-              {activeGoals.slice(0, 4).map((g) => (
+            <ul className="mt-3 space-y-3">
+              {pacedGoals.slice(0, 4).map(({ goal: g, pacing }) => (
                 <li key={g.id}>
-                  <div className="flex items-center justify-between text-xs text-neutral-400">
-                    <span className="truncate">{g.title}</span>
-                    <span>{g.progress}%</span>
+                  <div className="flex items-center justify-between gap-2 text-xs">
+                    <Link href={`/goals/${g.id}`} className="truncate text-neutral-300 hover:underline">
+                      {g.title}
+                    </Link>
+                    <PacingBadge pacing={pacing} className="shrink-0 !px-1.5 !py-0 !text-[10px]" />
                   </div>
-                  <ProgressBar value={g.progress} className="mt-1" />
+                  <div className="mt-1.5">
+                    <PacedProgressBar progress={g.progress} expected={pacing.expected} />
+                  </div>
+                  <p className="mt-1 text-[11px] text-neutral-500">
+                    {g.progress}%{pacing.daysLeft !== null ? ` · ${daysLeftLabel(pacing.daysLeft)}` : ""}
+                  </p>
                 </li>
               ))}
             </ul>
