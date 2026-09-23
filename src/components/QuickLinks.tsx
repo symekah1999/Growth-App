@@ -12,6 +12,7 @@ import {
   CreditCard,
   Bot,
   Trophy,
+  Mountain,
   type LucideIcon,
 } from "lucide-react";
 
@@ -26,6 +27,7 @@ const QUICK_LINKS: QuickLink[] = [
   { href: "/mantras", label: "Mantras", icon: Sparkles, accent: "text-fuchsia-400" },
   { href: "/bible", label: "Bible", icon: BookOpen, accent: "text-amber-400" },
   { href: "/quotes", label: "Quotes", icon: Quote, accent: "text-amber-300" },
+  { href: "/realities", label: "Realities", icon: Mountain, accent: "text-orange-300" },
   { href: "/todos", label: "To-Dos", icon: ListChecks, accent: "text-emerald-400" },
   { href: "/savings", label: "Savings", icon: PiggyBank, accent: "text-teal-400" },
   { href: "/debts", label: "Debts", icon: CreditCard, accent: "text-red-400" },

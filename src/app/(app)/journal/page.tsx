@@ -14,10 +14,10 @@ const MOODS = ["grateful", "energized", "neutral", "anxious", "low", "reflective
 export default async function JournalPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; mood?: string }>;
+  searchParams: Promise<{ q?: string; mood?: string; prompt?: string }>;
 }) {
   const user = await requireUser();
-  const { q, mood } = await searchParams;
+  const { q, mood, prompt } = await searchParams;
 
   const conditions = [eq(journalEntries.userId, user.id)];
   if (mood) conditions.push(eq(journalEntries.mood, mood));
@@ -60,9 +60,16 @@ export default async function JournalPage({
       />
 
       <Card className="mb-6">
+        {prompt && (
+          <div className="mb-3 rounded-lg border border-amber-900/50 bg-amber-950/20 px-3 py-2">
+            <p className="text-xs font-medium uppercase tracking-wide text-amber-400">Reflecting on</p>
+            <p className="mt-0.5 text-sm text-neutral-100">{prompt}</p>
+            <p className="mt-1 text-xs text-neutral-500">Where do you see this in your life right now? What will you do about it?</p>
+          </div>
+        )}
         <form action={createEntry} className="space-y-3">
           <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-            <Input name="title" placeholder="Title (optional)" />
+            <Input name="title" placeholder="Title (optional)" defaultValue={prompt ?? ""} />
             <Input type="date" name="entryDate" defaultValue={todayISO()} />
           </div>
           <Textarea name="body" placeholder="What's on your mind today?" rows={4} required />

@@ -185,6 +185,12 @@ All of it is computed from your existing data (`src/lib/progress.ts`), so no ext
 
 A 26-week habit consistency heatmap on Habits, a mood trend on Journal, a savings growth line with target pacing on Savings, and a projected-balance chart with your debt-free date on Debts.
 
+### Quote library & Realities of Life
+
+- **Quotes** (`src/db/seed-data/quote-library/`): a built-in library of 236 quotes across 30 themes. Sources include KJV scripture, classical and Stoic thinkers, Christian writers, Swahili and other African proverbs, and well-known modern voices. Quotes whose original source is uncertain are marked "(attributed)". You can browse or search by theme and save any quote to your own collection. Quote of the day draws from the library plus your own saved quotes, with your own counted twice. To add more, append to any `partN.ts` file; no database changes are needed.
+- **Realities of Life** (`/realities`, content in `src/db/seed-data/realities/`): 63 hard truths across 11 themes, each with an explanation and one concrete action. There's a reality of the day on the dashboard and a "Reflect in journal" link that opens the journal with that truth as the prompt.
+- The AI assistant can search both (`browse_quote_library`, `get_life_realities`).
+
 ## What's not built yet (ideas for next passes)
 
 - Rich text / markdown rendering in the journal (currently plain text)

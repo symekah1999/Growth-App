@@ -1,0 +1,57 @@
+import type { LibraryQuote } from "./types";
+
+// Faith, purpose, success, leadership, money, time
+export const PART2: LibraryQuote[] = [
+  { text: "Faith is taking the first step even when you don't see the whole staircase.", author: "Martin Luther King Jr. (attributed)", category: "faith" },
+  { text: "Thou hast made us for thyself, O Lord, and our heart is restless until it finds its rest in thee.", author: "Augustine of Hippo", category: "faith" },
+  { text: "Pray as though everything depended on God. Work as though everything depended on you.", author: "Augustine of Hippo (attributed)", category: "faith" },
+  { text: "Now faith is the substance of things hoped for, the evidence of things not seen.", author: "Hebrews 11:1", category: "faith" },
+  { text: "Trust in the Lord with all thine heart; and lean not unto thine own understanding.", author: "Proverbs 3:5", category: "faith" },
+  { text: "Faith is to believe what you do not see; the reward of this faith is to see what you believe.", author: "Augustine of Hippo", category: "faith" },
+  { text: "Worry does not empty tomorrow of its sorrow, it empties today of its strength.", author: "Corrie ten Boom", category: "faith" },
+  { text: "Never be afraid to trust an unknown future to a known God.", author: "Corrie ten Boom", category: "faith" },
+  { text: "God does not call the qualified, He qualifies the called.", author: "Christian saying", category: "faith" },
+
+  { text: "He who has a why to live can bear almost any how.", author: "Friedrich Nietzsche", category: "purpose" },
+  { text: "The two most important days in your life are the day you are born and the day you find out why.", author: "Mark Twain (attributed)", category: "purpose" },
+  { text: "The purpose of life is not to be happy. It is to be useful, to be honorable, to be compassionate.", author: "Leo Rosten", category: "purpose" },
+  { text: "For I know the thoughts that I think toward you, saith the Lord, thoughts of peace, and not of evil, to give you an expected end.", author: "Jeremiah 29:11", category: "purpose" },
+  { text: "Efforts and courage are not enough without purpose and direction.", author: "John F. Kennedy", category: "purpose" },
+  { text: "Life is never made unbearable by circumstances, but only by lack of meaning and purpose.", author: "Viktor Frankl", category: "purpose" },
+  { text: "Seek ye first the kingdom of God, and his righteousness; and all these things shall be added unto you.", author: "Matthew 6:33", category: "purpose" },
+
+  { text: "Success is not the key to happiness. Happiness is the key to success.", author: "Albert Schweitzer (attributed)", category: "success" },
+  { text: "The secret of getting ahead is getting started.", author: "Mark Twain (attributed)", category: "success" },
+  { text: "Try not to become a man of success, but rather try to become a man of value.", author: "Albert Einstein", category: "success" },
+  { text: "Opportunity is missed by most people because it is dressed in overalls and looks like work.", author: "Thomas Edison (attributed)", category: "success" },
+  { text: "What you get by achieving your goals is not as important as what you become by achieving your goals.", author: "Zig Ziglar", category: "success" },
+  { text: "I find that the harder I work, the more luck I seem to have.", author: "Coleman Cox", category: "success" },
+  { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson", category: "success" },
+  { text: "The way to get started is to quit talking and begin doing.", author: "Walt Disney (attributed)", category: "success" },
+
+  { text: "A leader is one who knows the way, goes the way, and shows the way.", author: "John C. Maxwell", category: "leadership" },
+  { text: "Whosoever will be great among you, let him be your minister.", author: "Matthew 20:26", category: "leadership" },
+  { text: "A leader is best when people barely know he exists.", author: "Lao Tzu", category: "leadership" },
+  { text: "The price of greatness is responsibility.", author: "Winston Churchill", category: "leadership" },
+  { text: "Leadership and learning are indispensable to each other.", author: "John F. Kennedy", category: "leadership" },
+  { text: "He who has never learned to obey cannot be a good commander.", author: "Aristotle", category: "leadership" },
+  { text: "Example is not the main thing in influencing others. It is the only thing.", author: "Albert Schweitzer", category: "leadership" },
+
+  { text: "Beware of little expenses; a small leak will sink a great ship.", author: "Benjamin Franklin", category: "money" },
+  { text: "An investment in knowledge pays the best interest.", author: "Benjamin Franklin", category: "money" },
+  { text: "The rich ruleth over the poor, and the borrower is servant to the lender.", author: "Proverbs 22:7", category: "money" },
+  { text: "Do not save what is left after spending, but spend what is left after saving.", author: "Warren Buffett", category: "money" },
+  { text: "A budget is telling your money where to go instead of wondering where it went.", author: "Dave Ramsey", category: "money" },
+  { text: "Wealth consists not in having great possessions, but in having few wants.", author: "Epictetus", category: "money" },
+  { text: "Wealth gotten by vanity shall be diminished: but he that gathereth by labour shall increase.", author: "Proverbs 13:11", category: "money" },
+  { text: "Out of debt, out of danger.", author: "Proverb", category: "money" },
+  { text: "Too many people spend money they haven't earned, to buy things they don't want, to impress people they don't like.", author: "Will Rogers (attributed)", category: "money" },
+
+  { text: "It is not that we have a short time to live, but that we waste a lot of it.", author: "Seneca", category: "time" },
+  { text: "Dost thou love life? Then do not squander time, for that's the stuff life is made of.", author: "Benjamin Franklin", category: "time" },
+  { text: "The best time to plant a tree was 20 years ago. The second best time is now.", author: "Proverb", category: "time" },
+  { text: "To every thing there is a season, and a time to every purpose under the heaven.", author: "Ecclesiastes 3:1", category: "time" },
+  { text: "So teach us to number our days, that we may apply our hearts unto wisdom.", author: "Psalm 90:12", category: "time" },
+  { text: "Time is the most valuable thing a man can spend.", author: "Theophrastus", category: "time" },
+  { text: "Procrastination is the thief of time.", author: "Edward Young", category: "time" },
+];

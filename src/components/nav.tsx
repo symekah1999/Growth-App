@@ -17,6 +17,7 @@ import {
   PiggyBank,
   CreditCard,
   Trophy,
+  Mountain,
   type LucideIcon,
 } from "lucide-react";
 
@@ -46,6 +47,7 @@ const sections: { label: string; links: LinkDef[] }[] = [
       { href: "/mantras", label: "Mantras & Values", icon: Sparkles },
       { href: "/bible", label: "Bible", icon: BookOpen },
       { href: "/quotes", label: "Quotes", icon: Quote },
+      { href: "/realities", label: "Realities of Life", icon: Mountain },
     ],
   },
   {

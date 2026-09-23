@@ -13,7 +13,8 @@ import { PacingBadge, PacedProgressBar } from "@/components/PacingBadge";
 import { daysLeftLabel, goalPacing, pacingSortKey } from "@/lib/pacing";
 import { headlineInsight, RECOVERY_MILESTONES } from "@/lib/recovery-insights";
 import { achievements, lifeScore, loadProgressData } from "@/lib/progress";
-import { Bot, Trophy } from "lucide-react";
+import { getRealityOfTheDay } from "@/db/seed-data/realities";
+import { ArrowRight, Bot, Trophy } from "lucide-react";
 import Link from "next/link";
 
 export default async function DashboardPage() {
@@ -41,6 +42,7 @@ export default async function DashboardPage() {
   ]);
 
   const prayer = getPrayerOfTheDay();
+  const reality = getRealityOfTheDay(today);
 
   const progressData = await loadProgressData(user.id);
   const score = lifeScore(progressData, today);
@@ -193,6 +195,23 @@ export default async function DashboardPage() {
           </Card>
         )}
       </div>
+
+      <Card className="mb-6 border-orange-900/40 bg-orange-950/10">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-medium uppercase tracking-wide text-orange-300">Reality of the day</p>
+            <p className="mt-1.5 text-lg font-semibold leading-snug text-neutral-50">{reality.truth}</p>
+            <p className="mt-1 text-sm leading-relaxed text-neutral-400">{reality.detail}</p>
+            <p className="mt-2 flex items-start gap-1.5 text-sm text-neutral-200">
+              <ArrowRight size={14} className="mt-1 shrink-0 text-orange-300" />
+              {reality.action}
+            </p>
+          </div>
+          <Link href="/realities" className="shrink-0 text-xs text-neutral-500 hover:text-neutral-300">
+            All realities →
+          </Link>
+        </div>
+      </Card>
 
       {randomMantra && (
         <Card className="mb-6 text-center">

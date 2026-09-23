@@ -1,0 +1,52 @@
+import type { LibraryQuote } from "./types";
+
+// Discipline, habits, resilience, courage, wisdom
+export const PART1: LibraryQuote[] = [
+  { text: "Well done is better than well said.", author: "Benjamin Franklin", category: "discipline" },
+  { text: "No man is free who is not master of himself.", author: "Epictetus", category: "discipline" },
+  { text: "The first and best victory is to conquer self.", author: "Plato", category: "discipline" },
+  { text: "He that can have patience can have what he will.", author: "Benjamin Franklin", category: "discipline" },
+  { text: "Hard choices, easy life. Easy choices, hard life.", author: "Jerzy Gregorek", category: "discipline" },
+  { text: "The pain of discipline weighs ounces; the pain of regret weighs tons.", author: "Jim Rohn", category: "discipline" },
+  { text: "Discipline is the bridge between goals and accomplishment.", author: "Jim Rohn", category: "discipline" },
+  { text: "Lost time is never found again.", author: "Benjamin Franklin", category: "discipline" },
+  { text: "Rule your mind or it will rule you.", author: "Horace", category: "discipline" },
+
+  { text: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.", author: "Will Durant", category: "habits" },
+  { text: "You do not rise to the level of your goals. You fall to the level of your systems.", author: "James Clear", category: "habits" },
+  { text: "Every action you take is a vote for the type of person you wish to become.", author: "James Clear", category: "habits" },
+  { text: "Drop by drop is the water pot filled.", author: "Buddhist proverb", category: "habits" },
+  { text: "Little strokes fell great oaks.", author: "Benjamin Franklin", category: "habits" },
+  { text: "The man who moves a mountain begins by carrying away small stones.", author: "Chinese proverb", category: "habits" },
+  { text: "Chains of habit are too light to be felt until they are too heavy to be broken.", author: "Samuel Johnson (attributed)", category: "habits" },
+  { text: "Motivation is what gets you started. Habit is what keeps you going.", author: "Jim Ryun", category: "habits" },
+  { text: "Success is the sum of small efforts, repeated day in and day out.", author: "Robert Collier", category: "habits" },
+
+  { text: "Fall seven times, stand up eight.", author: "Japanese proverb", category: "resilience" },
+  { text: "Our greatest glory is not in never falling, but in rising every time we fall.", author: "Oliver Goldsmith", category: "resilience" },
+  { text: "It is not the mountain we conquer but ourselves.", author: "Edmund Hillary", category: "resilience" },
+  { text: "Smooth seas do not make skillful sailors.", author: "Proverb", category: "resilience" },
+  { text: "When you come to the end of your rope, tie a knot and hang on.", author: "Franklin D. Roosevelt (attributed)", category: "resilience" },
+  { text: "Although the world is full of suffering, it is also full of the overcoming of it.", author: "Helen Keller", category: "resilience" },
+  { text: "Rock bottom became the solid foundation on which I rebuilt my life.", author: "J.K. Rowling", category: "resilience" },
+  { text: "Out of suffering have emerged the strongest souls.", author: "Kahlil Gibran", category: "resilience" },
+
+  { text: "Courage is resistance to fear, mastery of fear — not absence of fear.", author: "Mark Twain", category: "courage" },
+  { text: "You must do the thing you think you cannot do.", author: "Eleanor Roosevelt", category: "courage" },
+  { text: "I learned that courage was not the absence of fear, but the triumph over it.", author: "Nelson Mandela", category: "courage" },
+  { text: "Have I not commanded thee? Be strong and of a good courage.", author: "Joshua 1:9", category: "courage" },
+  { text: "Courage is the first of human qualities because it is the quality which guarantees all others.", author: "Winston Churchill", category: "courage" },
+  { text: "He who is not courageous enough to take risks will accomplish nothing in life.", author: "Muhammad Ali", category: "courage" },
+  { text: "Life shrinks or expands in proportion to one's courage.", author: "Anaïs Nin", category: "courage" },
+  { text: "Fortune favours the bold.", author: "Latin proverb", category: "courage" },
+
+  { text: "The only true wisdom is in knowing you know nothing.", author: "Socrates (attributed)", category: "wisdom" },
+  { text: "Knowing yourself is the beginning of all wisdom.", author: "Aristotle (attributed)", category: "wisdom" },
+  { text: "The fear of the Lord is the beginning of wisdom.", author: "Proverbs 9:10", category: "wisdom" },
+  { text: "A wise man will hear, and will increase learning.", author: "Proverbs 1:5", category: "wisdom" },
+  { text: "It is better to remain silent and be thought a fool than to open one's mouth and remove all doubt.", author: "Proverb", category: "wisdom" },
+  { text: "Wisdom begins in wonder.", author: "Socrates (attributed)", category: "wisdom" },
+  { text: "Be wise with speed; a fool at forty is a fool indeed.", author: "Edward Young", category: "wisdom" },
+  { text: "The unexamined life is not worth living.", author: "Socrates", category: "wisdom" },
+  { text: "Turn your wounds into wisdom.", author: "Oprah Winfrey", category: "wisdom" },
+];

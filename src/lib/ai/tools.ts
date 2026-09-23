@@ -23,6 +23,8 @@ import { and, desc, eq, ilike, sql } from "drizzle-orm";
 import { streakDayCount, todayISO } from "@/lib/utils";
 import { computeStreaks } from "@/lib/streaks";
 import type Anthropic from "@anthropic-ai/sdk";
+import { QUOTE_CATEGORIES, QUOTE_LIBRARY } from "@/db/seed-data/quote-library";
+import { REALITIES, REALITY_THEMES, getRealityOfTheDay } from "@/db/seed-data/realities";
 
 type ToolDef = Anthropic.Tool;
 type Executor = (userId: string, input: Record<string, unknown>) => Promise<unknown>;
@@ -505,6 +507,46 @@ define(
       category: input.category ? String(input.category) : null,
     });
     return { created: true };
+  },
+);
+
+define(
+  {
+    name: "browse_quote_library",
+    description: `Search the built-in library of ${QUOTE_LIBRARY.length} quotes (scripture, classical thinkers, proverbs incl. Swahili, modern voices). Filter by category and/or a keyword. Categories: ${QUOTE_CATEGORIES.map((c) => c.slug).join(", ")}. Use this to encourage the user with a fitting quote rather than inventing one.`,
+    input_schema: {
+      type: "object",
+      properties: { category: { type: "string" }, query: { type: "string" }, limit: { type: "number" } },
+    },
+  },
+  async (_userId, input) => {
+    const cat = input.category ? String(input.category) : null;
+    const q = input.query ? String(input.query).toLowerCase() : null;
+    const limit = Math.min(20, Number(input.limit ?? 8));
+    return QUOTE_LIBRARY.filter(
+      (x) => (!cat || x.category === cat) && (!q || x.text.toLowerCase().includes(q) || x.author.toLowerCase().includes(q)),
+    )
+      .slice(0, limit)
+      .map(({ text, author, category }) => ({ text, author, category }));
+  },
+);
+
+// ---------------------------------------------------------------------------
+// REALITIES OF LIFE
+// ---------------------------------------------------------------------------
+define(
+  {
+    name: "get_life_realities",
+    description: `Get "realities of life" — hard truths with an explanation and one concrete action each. Filter by theme (${REALITY_THEMES.map((t) => t.slug).join(", ")}) or get today's reality with today=true. Use when the user needs perspective, a reality check, or practical wisdom.`,
+    input_schema: {
+      type: "object",
+      properties: { theme: { type: "string" }, today: { type: "boolean" } },
+    },
+  },
+  async (_userId, input) => {
+    if (input.today) return getRealityOfTheDay();
+    const theme = input.theme ? String(input.theme) : null;
+    return REALITIES.filter((r) => !theme || r.theme === theme).map(({ theme, truth, detail, action }) => ({ theme, truth, detail, action }));
   },
 );
 

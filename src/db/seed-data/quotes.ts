@@ -1,7 +1,7 @@
 // A starter bank of quotes across categories. Fully editable afterward from
 // the Quotes page — this just means you're not starting from zero.
 export const STARTER_QUOTES: { text: string; author: string; category: string }[] = [
-  { text: "Discipline is choosing between what you want now and what you want most.", author: "Abraham Lincoln", category: "discipline" },
+  { text: "Discipline is choosing between what you want now and what you want most.", author: "Unknown (often misattributed to Abraham Lincoln)", category: "discipline" },
   { text: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.", author: "Will Durant", category: "discipline" },
   { text: "The pain of discipline weighs ounces; the pain of regret weighs tons.", author: "Jim Rohn", category: "discipline" },
   { text: "You do not rise to the level of your goals. You fall to the level of your systems.", author: "James Clear", category: "systems" },

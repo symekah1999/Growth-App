@@ -4,6 +4,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { dailyIndex, todayISO } from "@/lib/utils";
 import { FEATURED_REFERENCES } from "@/db/seed-data/books";
 import { getPrayerForTheme } from "@/db/seed-data/prayers";
+import { QUOTE_LIBRARY } from "@/db/seed-data/quote-library";
 
 /** Verse of the day: deterministic pick from a curated reference list, so it
  * changes once every 24h and is the same all day without needing a cron job
@@ -41,17 +42,23 @@ export function getPrayerOfTheDay(dateISO = todayISO()) {
   return getPrayerForTheme(ref.theme);
 }
 
-/** Quote of the day: deterministic pick from this user's own quote bank. */
+/** Quote of the day: deterministic pick from the built-in library plus this
+ * user's own saved quotes (your own quotes get double weight so they show up
+ * more often). */
 export async function getQuoteOfTheDay(userId: string, dateISO = todayISO()) {
   const [{ count }] = await db
     .select({ count: sql<number>`count(*)` })
     .from(quotes)
     .where(eq(quotes.userId, userId));
 
-  const total = Number(count ?? 0);
-  if (total === 0) return null;
+  const own = Number(count ?? 0);
+  const pool = QUOTE_LIBRARY.length + own * 2;
+  const idx = dailyIndex(dateISO + "-quote", pool);
 
-  const idx = dailyIndex(dateISO, total);
+  if (idx < QUOTE_LIBRARY.length) {
+    const q = QUOTE_LIBRARY[idx];
+    return { text: q.text, author: q.author, category: q.category };
+  }
 
   const [row] = await db
     .select()
@@ -59,7 +66,7 @@ export async function getQuoteOfTheDay(userId: string, dateISO = todayISO()) {
     .where(eq(quotes.userId, userId))
     .orderBy(quotes.createdAt)
     .limit(1)
-    .offset(idx);
+    .offset(Math.floor((idx - QUOTE_LIBRARY.length) / 2));
 
-  return row ?? null;
+  return row ? { text: row.text, author: row.author, category: row.category } : null;
 }
