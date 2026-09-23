@@ -95,7 +95,7 @@ export default async function RecoveryTrackerPage({ params }: { params: Promise<
             ) : (
               <ul className="space-y-2">
                 {checkins.slice(0, 10).map((c) => (
-                  <li key={c.id} className="rounded-lg border border-neutral-800 px-3 py-2 text-sm">
+                  <li key={`${c.trackerId}-${c.checkinDate}`} className="rounded-lg border border-neutral-800 px-3 py-2 text-sm">
                     <div className="flex items-center justify-between">
                       <span className="text-neutral-300">{formatDate(c.checkinDate)}</span>
                       {c.cravingLevel && <Badge>{CRAVING_LABELS[c.cravingLevel]} craving</Badge>}
