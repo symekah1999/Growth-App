@@ -3,6 +3,7 @@ import "./globals.css";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 
 export const metadata: Metadata = {
+  applicationName: "Growth OS",
   title: "Growth OS",
   description: "A private, all-in-one system for tracking growth across every dimension of life.",
   manifest: "/manifest.json",
@@ -23,6 +24,9 @@ export const metadata: Metadata = {
 
 export const viewport = {
   themeColor: "#0a0a0a",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover" as const,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

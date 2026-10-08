@@ -18,6 +18,7 @@ import {
   CreditCard,
   Trophy,
   Mountain,
+  Download,
   type LucideIcon,
 } from "lucide-react";
 
@@ -30,6 +31,7 @@ const sections: { label: string; links: LinkDef[] }[] = [
       { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
       { href: "/progress", label: "Progress", icon: Trophy },
       { href: "/chat", label: "Assistant", icon: Bot },
+      { href: "/install", label: "Install app", icon: Download },
     ],
   },
   {
