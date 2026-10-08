@@ -2,14 +2,18 @@
 // Uses the same TOOLS / executeTool as the Claude backend.
 import { TOOLS, executeTool } from "@/lib/ai/tools";
 
-const DEFAULT_MODEL = "gemini-3.8-flash";
-// Tolerate sloppy env values: whitespace, quotes, a "models/" prefix. Anything
-// that still isn't a plain model id falls back to the default.
-function resolveModel(): string {
-  const raw = (process.env.GEMINI_MODEL ?? "").trim().replace(/^["']|["']$/g, "").replace(/^models\//, "");
-  return /^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(raw) ? raw : DEFAULT_MODEL;
+// Ordered model chain: the first is preferred; if it is slow/overloaded the next is tried.
+// Override with GEMINI_MODEL (single) or GEMINI_MODELS (comma-separated).
+const DEFAULT_CHAIN = ["gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-flash-lite-latest"];
+function clean(m: string): string {
+  return m.trim().replace(/^["']|["']$/g, "").replace(/^models\//, "");
 }
-const MODEL = resolveModel();
+function resolveModels(): string[] {
+  const raw = process.env.GEMINI_MODELS || process.env.GEMINI_MODEL || "";
+  const list = raw.split(",").map(clean).filter((m) => /^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(m));
+  return list.length ? list : DEFAULT_CHAIN;
+}
+const MODELS = resolveModels();
 const MAX_TOOL_ROUNDS = 8;
 
 type Part = {
@@ -66,35 +70,41 @@ export async function runGemini(opts: {
   let finalText = "";
 
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-    // Retry transient overloads (503/500/502/504) with a short backoff.
+    // Try each model in the chain; a slow/overloaded model falls through to the next.
     let res: Response | undefined;
-    for (let attempt = 0; attempt < 4; attempt++) {
-      const remaining = deadline - Date.now();
-      if (remaining < 3000) throw new Error("The assistant took too long to answer. Please try again.");
-      try {
-        res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-          body: JSON.stringify({
-            systemInstruction: { parts: [{ text: opts.system }] },
-            contents,
-            tools: [{ functionDeclarations: FUNCTION_DECLARATIONS }],
-            generationConfig: { maxOutputTokens: 2048 },
-          }),
-          signal: AbortSignal.timeout(Math.min(25_000, remaining)),
-        },
-      );
-      } catch {
-        res = undefined;
-        if (attempt === 3) throw new Error("Gemini didn't respond in time. Please try again.");
-        continue;
+    outer: for (const model of MODELS) {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const remaining = deadline - Date.now();
+        if (remaining < 3000) throw new Error("The assistant took too long to answer. Please try again.");
+        try {
+          res = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+              body: JSON.stringify({
+                systemInstruction: { parts: [{ text: opts.system }] },
+                contents,
+                tools: [{ functionDeclarations: FUNCTION_DECLARATIONS }],
+                generationConfig: { maxOutputTokens: 2048 },
+              }),
+              signal: AbortSignal.timeout(Math.min(14_000, remaining)),
+            },
+          );
+        } catch {
+          res = undefined; // timeout / network: next attempt, then next model
+          continue;
+        }
+        if ([404, 500, 502, 503, 504].includes(res.status)) {
+          if (res.status === 404) break; // model unavailable for this key: next model
+          await new Promise((r) => setTimeout(r, 800));
+          continue;
+        }
+        break outer; // success or a non-retryable error
       }
-      if (![500, 502, 503, 504].includes(res.status)) break;
-      await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
+      res = undefined;
     }
-    if (!res) throw new Error("Gemini request failed");
+    if (!res) throw new Error("Gemini is busy or slow right now. Please try again in a minute.");
 
     if (!res.ok) {
       const body = await res.text();
