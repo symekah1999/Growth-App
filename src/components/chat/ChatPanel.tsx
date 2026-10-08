@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Sparkles, Send, Trash2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { RichText } from "@/components/chat/RichText";
 
 type Turn = { role: "user" | "assistant"; content: string };
 
@@ -124,13 +125,13 @@ export function ChatPanel({ compact = false }: { compact?: boolean }) {
             <div key={i} className={cn("flex", m.role === "user" ? "justify-end" : "justify-start")}>
               <div
                 className={cn(
-                  "max-w-[85%] whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed",
+                  "max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed",
                   m.role === "user"
-                    ? "rounded-br-sm bg-gradient-to-br from-indigo-600 to-indigo-500 text-white"
+                    ? "whitespace-pre-wrap rounded-br-sm bg-gradient-to-br from-indigo-600 to-indigo-500 text-white"
                     : "rounded-bl-sm border border-neutral-800 bg-neutral-900/70 text-neutral-200",
                 )}
               >
-                {m.content}
+                {m.role === "assistant" ? <RichText text={m.content} /> : m.content}
               </div>
             </div>
           ))
