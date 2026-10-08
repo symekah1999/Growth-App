@@ -2,7 +2,14 @@
 // Uses the same TOOLS / executeTool as the Claude backend.
 import { TOOLS, executeTool } from "@/lib/ai/tools";
 
-const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const DEFAULT_MODEL = "gemini-2.5-flash";
+// Tolerate sloppy env values: whitespace, quotes, a "models/" prefix. Anything
+// that still isn't a plain model id falls back to the default.
+function resolveModel(): string {
+  const raw = (process.env.GEMINI_MODEL ?? "").trim().replace(/^["']|["']$/g, "").replace(/^models\//, "");
+  return /^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(raw) ? raw : DEFAULT_MODEL;
+}
+const MODEL = resolveModel();
 const MAX_TOOL_ROUNDS = 8;
 
 type Part = {
@@ -43,7 +50,7 @@ export async function runGemini(opts: {
   message: string;
   userId: string;
 }): Promise<{ finalText: string; actionsTaken: { tool: string; result: unknown }[] }> {
-  const key = process.env.GEMINI_API_KEY;
+  const key = process.env.GEMINI_API_KEY?.trim().replace(/^["']|["']$/g, "");
   if (!key) throw new Error("GEMINI_API_KEY is not set.");
 
   const contents: Content[] = [
