@@ -2,7 +2,7 @@
 // Uses the same TOOLS / executeTool as the Claude backend.
 import { TOOLS, executeTool } from "@/lib/ai/tools";
 
-const DEFAULT_MODEL = "gemini-2.5-flash";
+const DEFAULT_MODEL = "gemini-3.8-flash";
 // Tolerate sloppy env values: whitespace, quotes, a "models/" prefix. Anything
 // that still isn't a plain model id falls back to the default.
 function resolveModel(): string {
