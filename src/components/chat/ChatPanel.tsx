@@ -46,9 +46,19 @@ export function ChatPanel({ compact = false }: { compact?: boolean }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: trimmed }),
       });
-      const data = await res.json();
+      const raw = await res.text();
+      let data: { reply?: string; error?: string } = {};
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        throw new Error(
+          res.status === 504 || /timeout|error occurred/i.test(raw)
+            ? "The assistant took too long to answer. Please try again."
+            : "The server returned an unexpected response. Please try again.",
+        );
+      }
       if (!res.ok) throw new Error(data.error ?? "Something went wrong.");
-      setMessages((m) => [...m, { role: "assistant", content: data.reply }]);
+      setMessages((m) => [...m, { role: "assistant", content: data.reply ?? "" }]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {

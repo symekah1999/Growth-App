@@ -61,6 +61,7 @@ export async function runGemini(opts: {
     { role: "user", parts: [{ text: opts.message }] },
   ];
 
+  const deadline = Date.now() + 48_000; // route allows 60s; stay under it
   const actionsTaken: { tool: string; result: unknown }[] = [];
   let finalText = "";
 
@@ -68,7 +69,10 @@ export async function runGemini(opts: {
     // Retry transient overloads (503/500/502/504) with a short backoff.
     let res: Response | undefined;
     for (let attempt = 0; attempt < 4; attempt++) {
-      res = await fetch(
+      const remaining = deadline - Date.now();
+      if (remaining < 3000) throw new Error("The assistant took too long to answer. Please try again.");
+      try {
+        res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
         {
           method: "POST",
@@ -79,8 +83,14 @@ export async function runGemini(opts: {
             tools: [{ functionDeclarations: FUNCTION_DECLARATIONS }],
             generationConfig: { maxOutputTokens: 2048 },
           }),
+          signal: AbortSignal.timeout(Math.min(25_000, remaining)),
         },
       );
+      } catch {
+        res = undefined;
+        if (attempt === 3) throw new Error("Gemini didn't respond in time. Please try again.");
+        continue;
+      }
       if (![500, 502, 503, 504].includes(res.status)) break;
       await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
     }
