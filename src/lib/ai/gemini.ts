@@ -65,24 +65,34 @@ export async function runGemini(opts: {
   let finalText = "";
 
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: opts.system }] },
-          contents,
-          tools: [{ functionDeclarations: FUNCTION_DECLARATIONS }],
-          generationConfig: { maxOutputTokens: 2048 },
-        }),
-      },
-    );
+    // Retry transient overloads (503/500/502/504) with a short backoff.
+    let res: Response | undefined;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: opts.system }] },
+            contents,
+            tools: [{ functionDeclarations: FUNCTION_DECLARATIONS }],
+            generationConfig: { maxOutputTokens: 2048 },
+          }),
+        },
+      );
+      if (![500, 502, 503, 504].includes(res.status)) break;
+      await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
+    }
+    if (!res) throw new Error("Gemini request failed");
 
     if (!res.ok) {
       const body = await res.text();
       if (res.status === 429) {
         throw new Error("Gemini free-tier limit reached — wait a minute and try again.");
+      }
+      if (res.status === 503) {
+        throw new Error("Gemini is busy right now (Google-side overload). Please try again in a minute.");
       }
       throw new Error(`Gemini error ${res.status}: ${body.slice(0, 300)}`);
     }
