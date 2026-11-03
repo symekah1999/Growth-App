@@ -8,6 +8,7 @@ import { formatDate, streakDayCount, todayISO } from "@/lib/utils";
 import { headlineInsight, RECOVERY_MILESTONES } from "@/lib/recovery-insights";
 import { ProgressRing } from "@/components/ProgressRing";
 import Link from "next/link";
+import { photoUrl } from "@/lib/images";
 
 const MILESTONES = RECOVERY_MILESTONES;
 
@@ -51,6 +52,7 @@ export default async function RecoveryPage() {
   return (
     <div>
       <PageHeader
+        image={photoUrl("recovery")}
         title="Recovery"
         subtitle="Every day counted, out of a 1,000-day horizon. A reset doesn't erase what came before it."
       />

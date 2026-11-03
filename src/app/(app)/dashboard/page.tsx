@@ -15,6 +15,10 @@ import { headlineInsight, RECOVERY_MILESTONES } from "@/lib/recovery-insights";
 import { achievements, lifeScore, loadProgressData } from "@/lib/progress";
 import { getRealityOfTheDay } from "@/db/seed-data/realities";
 import { ArrowRight, Bot, Trophy } from "lucide-react";
+import { Compass, Sunrise } from "lucide-react";
+import { getStoryOfTheDay } from "@/db/seed-data/resilience";
+import { getSystemOfTheDay } from "@/db/seed-data/life-systems";
+import { photoUrl, storyPhoto } from "@/lib/images";
 import Link from "next/link";
 
 export default async function DashboardPage() {
@@ -43,6 +47,8 @@ export default async function DashboardPage() {
 
   const prayer = getPrayerOfTheDay();
   const reality = getRealityOfTheDay(today);
+  const story = getStoryOfTheDay(today);
+  const system = getSystemOfTheDay(today);
 
   const progressData = await loadProgressData(user.id);
   const score = lifeScore(progressData, today);
@@ -111,16 +117,20 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <Card className="mb-6 overflow-hidden border-neutral-800 bg-gradient-to-br from-indigo-950/40 via-neutral-900/60 to-fuchsia-950/20">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+      <Card className="relative mb-6 overflow-hidden border-neutral-800 bg-gradient-to-br from-indigo-950 via-neutral-900 to-neutral-950 p-0">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={photoUrl("dashboard")} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/55 to-neutral-950/5" />
+        <div className="relative flex min-h-[13rem] flex-wrap items-end justify-between gap-4 px-5 pb-5 pt-20 sm:min-h-[15rem] sm:px-7 sm:pb-6">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-neutral-50">Welcome back</h1>
-            <p className="mt-1 text-sm text-neutral-400">{formatToday()}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">{formatToday()}</p>
+            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Welcome back</h1>
+            <p className="mt-1 text-sm text-neutral-200">One more day to grow. Make it count.</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <Link
               href="/progress"
-              className="flex items-center gap-3 rounded-xl border border-neutral-800 bg-neutral-950/40 px-4 py-2 transition hover:border-neutral-700"
+              className="flex items-center gap-3 rounded-xl border border-white/10 bg-neutral-950/60 px-4 py-2 backdrop-blur transition hover:border-white/25"
             >
               <div>
                 <p className="text-[10px] uppercase tracking-wide text-neutral-500">Life score</p>
@@ -141,7 +151,7 @@ export default async function DashboardPage() {
             </Link>
             <Link
               href="/chat"
-              className="flex items-center gap-2 rounded-xl border border-indigo-800/60 bg-indigo-600/10 px-4 py-2.5 text-sm font-medium text-indigo-300 transition hover:bg-indigo-600/20"
+              className="flex items-center gap-2 rounded-xl border border-indigo-500/40 bg-indigo-600/30 px-4 py-2.5 text-sm font-medium text-indigo-100 backdrop-blur transition hover:bg-indigo-600/45"
             >
               <Bot size={16} />
               Ask your assistant
@@ -153,6 +163,57 @@ export default async function DashboardPage() {
       <div className="mb-6">
         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-500">Jump to</p>
         <QuickLinks />
+      </div>
+
+      <div className="mb-6 grid gap-4 lg:grid-cols-2">
+        <Link
+          href="/lessons"
+          className="group relative block min-h-[15rem] overflow-hidden rounded-xl border border-amber-900/50 bg-neutral-900"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={storyPhoto(story.field)}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/75 to-neutral-950/20" />
+          <div className="relative flex h-full min-h-[15rem] flex-col justify-end p-5">
+            <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-amber-300">
+              <Sunrise size={13} /> Great life of the day
+            </p>
+            <p className="mt-1 text-xl font-semibold text-white">{story.name}</p>
+            <p className="mt-1 line-clamp-2 text-sm text-neutral-300">{story.setback}</p>
+            <p className="mt-2 border-l-2 border-amber-400/70 pl-2.5 text-sm font-medium text-neutral-50">{story.lesson}</p>
+            <p className="mt-2 flex items-center gap-1 text-xs text-amber-200/80">
+              Read the full story <ArrowRight size={12} />
+            </p>
+          </div>
+        </Link>
+        <Link
+          href="/systems"
+          className="group relative block min-h-[15rem] overflow-hidden rounded-xl border border-indigo-900/50 bg-neutral-900"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={photoUrl("systems", 1200)}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/75 to-neutral-950/20" />
+          <div className="relative flex h-full min-h-[15rem] flex-col justify-end p-5">
+            <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-300">
+              <Compass size={13} /> System of the day
+            </p>
+            <p className="mt-1 text-xl font-semibold text-white">{system.title}</p>
+            <p className="text-xs text-neutral-400">{system.origin}</p>
+            <p className="mt-1.5 line-clamp-2 text-sm text-neutral-300">{system.summary}</p>
+            <p className="mt-2 text-sm text-neutral-50">
+              <span className="font-medium text-indigo-200">Try today:</span> {system.tryToday}
+            </p>
+          </div>
+        </Link>
       </div>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2">

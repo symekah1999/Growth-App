@@ -8,6 +8,7 @@ import { addDaysISO, formatDate, todayISO } from "@/lib/utils";
 import { MOOD_SCORE } from "@/lib/mood";
 import { TrendLine } from "@/components/charts/TrendLine";
 import Link from "next/link";
+import { photoUrl } from "@/lib/images";
 
 const MOODS = ["grateful", "energized", "neutral", "anxious", "low", "reflective", "hopeful"];
 
@@ -55,6 +56,7 @@ export default async function JournalPage({
   return (
     <div>
       <PageHeader
+        image={photoUrl("journal")}
         title="Journal"
         subtitle="A private record of how things are actually going."
       />

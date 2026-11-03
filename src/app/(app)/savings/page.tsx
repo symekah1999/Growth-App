@@ -7,6 +7,7 @@ import { createPlan, addContribution, archivePlan, deletePlan } from "./actions"
 import { addDaysISO, currency, daysBetween, formatDate, todayISO, toISODate } from "@/lib/utils";
 import { monthsToTarget } from "@/lib/finance";
 import { TrendLine } from "@/components/charts/TrendLine";
+import { photoUrl } from "@/lib/images";
 
 export default async function SavingsPage() {
   const user = await requireUser();
@@ -38,7 +39,8 @@ export default async function SavingsPage() {
 
   return (
     <div>
-      <PageHeader title="Savings" subtitle="Build and track progress toward specific savings goals." />
+      <PageHeader
+        image={photoUrl("savings")} title="Savings" subtitle="Build and track progress toward specific savings goals." />
 
       <Card className="mb-6">
         <form action={createPlan} className="space-y-3">

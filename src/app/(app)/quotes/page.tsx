@@ -8,6 +8,7 @@ import { getQuoteOfTheDay } from "@/lib/daily";
 import { QUOTE_CATEGORIES, QUOTE_LIBRARY, categoryLabel } from "@/db/seed-data/quote-library";
 import { Bookmark, BookmarkCheck, Search } from "lucide-react";
 import Link from "next/link";
+import { photoUrl } from "@/lib/images";
 
 type Params = { tab?: string; cat?: string; q?: string };
 
@@ -48,6 +49,7 @@ export default async function QuotesPage({ searchParams }: { searchParams: Promi
   return (
     <div>
       <PageHeader
+        image={photoUrl("quotes")}
         title="Quotes"
         subtitle={`${QUOTE_LIBRARY.length} quotes across ${QUOTE_CATEGORIES.length} themes, plus your own collection.`}
       />

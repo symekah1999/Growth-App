@@ -3,6 +3,7 @@ import { PageHeader, Card } from "@/components/ui";
 import { REALITIES, REALITY_THEMES, getRealityOfTheDay } from "@/db/seed-data/realities";
 import { ArrowRight, NotebookPen, Target } from "lucide-react";
 import Link from "next/link";
+import { photoUrl } from "@/lib/images";
 
 function journalHref(truth: string) {
   return `/journal?prompt=${encodeURIComponent(truth)}`;
@@ -17,6 +18,7 @@ export default async function RealitiesPage({ searchParams }: { searchParams: Pr
   return (
     <div>
       <PageHeader
+        image={photoUrl("realities")}
         title="Realities of Life"
         subtitle={`${REALITIES.length} hard truths, each with one thing to do about it. Read slowly, apply one at a time.`}
       />

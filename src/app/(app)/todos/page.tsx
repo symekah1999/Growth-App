@@ -6,6 +6,7 @@ import { PageHeader, Card, EmptyState, Input, Button, Select } from "@/component
 import { createTodo, toggleTodo, deleteTodo } from "./actions";
 import { formatDate, todayISO } from "@/lib/utils";
 import type { TodoScope } from "@/db/schema";
+import { photoUrl } from "@/lib/images";
 
 const SCOPES: { key: TodoScope; label: string; placeholder: string }[] = [
   { key: "daily", label: "Daily", placeholder: "Today" },
@@ -23,7 +24,8 @@ export default async function TodosPage() {
 
   return (
     <div>
-      <PageHeader title="To-Dos" subtitle="Daily, monthly, and yearly — one place to see it all." />
+      <PageHeader
+        image={photoUrl("todos")} title="To-Dos" subtitle="Daily, monthly, and yearly — one place to see it all." />
 
       <Card className="mb-6">
         <form action={createTodo} className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto]">

@@ -5,6 +5,7 @@ import { TrendLine } from "@/components/charts/TrendLine";
 import { currency, formatDate } from "@/lib/utils";
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import Link from "next/link";
+import { photoUrl } from "@/lib/images";
 
 function scoreWord(score: number) {
   if (score >= 85) return "Thriving";
@@ -33,7 +34,8 @@ export default async function ProgressPage() {
 
   return (
     <div>
-      <PageHeader title="Progress" subtitle="Your life score, weekly review, balance across life areas, and achievements earned." />
+      <PageHeader
+        image={photoUrl("progress")} title="Progress" subtitle="Your life score, weekly review, balance across life areas, and achievements earned." />
 
       {/* LIFE SCORE */}
       <div className="mb-6 grid gap-4 lg:grid-cols-[minmax(0,340px)_1fr]">

@@ -19,6 +19,8 @@ import {
   Trophy,
   Mountain,
   Download,
+  Compass,
+  Lightbulb,
   type LucideIcon,
 } from "lucide-react";
 
@@ -41,6 +43,7 @@ const sections: { label: string; links: LinkDef[] }[] = [
       { href: "/goals", label: "Goals", icon: Target },
       { href: "/habits", label: "Habits", icon: Flame },
       { href: "/recovery", label: "Recovery", icon: HeartPulse },
+      { href: "/systems", label: "Life Systems", icon: Compass },
     ],
   },
   {
@@ -49,6 +52,7 @@ const sections: { label: string; links: LinkDef[] }[] = [
       { href: "/mantras", label: "Mantras & Values", icon: Sparkles },
       { href: "/bible", label: "Bible", icon: BookOpen },
       { href: "/quotes", label: "Quotes", icon: Quote },
+      { href: "/lessons", label: "Lessons of Life", icon: Lightbulb },
       { href: "/realities", label: "Realities of Life", icon: Mountain },
     ],
   },

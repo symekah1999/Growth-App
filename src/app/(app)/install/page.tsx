@@ -2,6 +2,7 @@ import { requireUser } from "@/lib/auth";
 import { PageHeader, Card } from "@/components/ui";
 import { InstallApp } from "@/components/InstallApp";
 import { Smartphone, Monitor, Package } from "lucide-react";
+import { photoUrl } from "@/lib/images";
 
 const APP_URL = "https://growth-app-ruddy-two.vercel.app";
 
@@ -20,6 +21,7 @@ export default async function InstallPage() {
   return (
     <div>
       <PageHeader
+        image={photoUrl("install")}
         title="Install Growth OS"
         subtitle="Put the app on your phone or computer so it opens like any other app — full screen, own icon, no browser bars."
       />

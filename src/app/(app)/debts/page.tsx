@@ -7,6 +7,7 @@ import { createDebt, recordPayment, archiveDebt, deleteDebt } from "./actions";
 import { currency } from "@/lib/utils";
 import { simulatePayoff } from "@/lib/finance";
 import { TrendLine } from "@/components/charts/TrendLine";
+import { photoUrl } from "@/lib/images";
 
 export default async function DebtsPage({
   searchParams,
@@ -66,6 +67,7 @@ export default async function DebtsPage({
   return (
     <div>
       <PageHeader
+        image={photoUrl("debts")}
         title="Debt Payoff"
         subtitle="Every active debt, its balance, and a plan to kill it."
         action={

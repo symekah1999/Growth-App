@@ -25,6 +25,9 @@ import { computeStreaks } from "@/lib/streaks";
 import type Anthropic from "@anthropic-ai/sdk";
 import { QUOTE_CATEGORIES, QUOTE_LIBRARY } from "@/db/seed-data/quote-library";
 import { REALITIES, REALITY_THEMES, getRealityOfTheDay } from "@/db/seed-data/realities";
+import { LIFE_SYSTEMS, SYSTEM_CATEGORIES, getSystemOfTheDay } from "@/db/seed-data/life-systems";
+import { RESILIENCE_STORIES, STORY_FIELDS, getStoryOfTheDay } from "@/db/seed-data/resilience";
+import { lifeLessons, LESSON_CATEGORIES } from "@/db/schema-lessons";
 
 type ToolDef = Anthropic.Tool;
 type Executor = (userId: string, input: Record<string, unknown>) => Promise<unknown>;
@@ -547,6 +550,108 @@ define(
     if (input.today) return getRealityOfTheDay();
     const theme = input.theme ? String(input.theme) : null;
     return REALITIES.filter((r) => !theme || r.theme === theme).map(({ theme, truth, detail, action }) => ({ theme, truth, detail, action }));
+  },
+);
+
+// ---------------------------------------------------------------------------
+// LIFE SYSTEMS, LESSONS & GREAT LIVES
+// ---------------------------------------------------------------------------
+define(
+  {
+    name: "browse_life_systems",
+    description: `Browse the Life Systems library: ${LIFE_SYSTEMS.length} proven systems for continuous progress (Stoic practices, habit design, productivity, goal setting, decisions, learning, health, money, relationships, faith, career), each with steps and a "try today" action. Filter by category (${SYSTEM_CATEGORIES.map((c) => c.key).join(", ")}), search with query, or get today's system with today=true. Use it when the user wants a method, routine or framework to improve an area of life.`,
+    input_schema: {
+      type: "object",
+      properties: { category: { type: "string" }, query: { type: "string" }, today: { type: "boolean" } },
+    },
+  },
+  async (_userId, input) => {
+    if (input.today) return getSystemOfTheDay();
+    const cat = input.category ? String(input.category) : null;
+    const q = input.query ? String(input.query).toLowerCase() : null;
+    return LIFE_SYSTEMS.filter(
+      (s) =>
+        (!cat || s.category === cat) &&
+        (!q || `${s.title} ${s.origin} ${s.summary} ${s.steps.join(" ")}`.toLowerCase().includes(q)),
+    ).slice(0, 15);
+  },
+);
+
+define(
+  {
+    name: "get_resilience_story",
+    description: `Get true stories of great people who faced setbacks and never gave up (setback, how they persisted, breakthrough, lesson, action). Filter by field (${STORY_FIELDS.map((f) => f.key).join(", ")}), by name, or get today's featured story with today=true. Use these instead of inventing anecdotes when encouraging the user.`,
+    input_schema: {
+      type: "object",
+      properties: { field: { type: "string" }, name: { type: "string" }, today: { type: "boolean" } },
+    },
+  },
+  async (_userId, input) => {
+    if (input.today) return getStoryOfTheDay();
+    const field = input.field ? String(input.field) : null;
+    const name = input.name ? String(input.name).toLowerCase() : null;
+    return RESILIENCE_STORIES.filter(
+      (s) => (!field || s.field === field) && (!name || s.name.toLowerCase().includes(name)),
+    );
+  },
+);
+
+define(
+  {
+    name: "log_life_lesson",
+    description: `Save a life lesson the user has learned to their Lessons of Life log. category is one of: ${LESSON_CATEGORIES.map((c) => c.key).join(", ")}. date is YYYY-MM-DD (defaults to today). Use when the user shares something they learned or realised.`,
+    input_schema: {
+      type: "object",
+      properties: {
+        lesson: { type: "string" },
+        context: { type: "string" },
+        category: { type: "string" },
+        source: { type: "string" },
+        date: { type: "string" },
+      },
+      required: ["lesson"],
+    },
+  },
+  async (userId, input) => {
+    const cat = String(input.category ?? "life");
+    const date = String(input.date ?? "");
+    const [row] = await db
+      .insert(lifeLessons)
+      .values({
+        userId,
+        lesson: String(input.lesson),
+        context: input.context ? String(input.context) : null,
+        source: input.source ? String(input.source) : null,
+        category: LESSON_CATEGORIES.some((c) => c.key === cat) ? cat : "life",
+        learnedOn: /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : todayISO(),
+      })
+      .returning();
+    return { saved: true, id: row.id, learnedOn: row.learnedOn };
+  },
+);
+
+define(
+  {
+    name: "get_life_lessons",
+    description: "Read the user's own logged life lessons, newest first. Optional category filter and limit (default 20). Use to remind the user of what they've learned or to spot patterns.",
+    input_schema: {
+      type: "object",
+      properties: { category: { type: "string" }, limit: { type: "number" } },
+    },
+  },
+  async (userId, input) => {
+    const limit = Math.min(Number(input.limit ?? 20) || 20, 100);
+    const rows = await db
+      .select()
+      .from(lifeLessons)
+      .where(
+        input.category
+          ? and(eq(lifeLessons.userId, userId), eq(lifeLessons.category, String(input.category)))
+          : eq(lifeLessons.userId, userId),
+      )
+      .orderBy(desc(lifeLessons.learnedOn))
+      .limit(limit);
+    return rows.map(({ lesson, context, category, source, learnedOn }) => ({ lesson, context, category, source, learnedOn }));
   },
 );
 

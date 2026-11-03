@@ -7,6 +7,7 @@ import { createHabit, toggleTodayLog, archiveHabit, deleteHabit } from "./action
 import { addDaysISO, todayISO } from "@/lib/utils";
 import { computeStreaks } from "@/lib/streaks";
 import { DayHeatmap } from "@/components/charts/DayHeatmap";
+import { photoUrl } from "@/lib/images";
 
 const DAYS_BACK = 70;
 const HEATMAP_DAYS = 182; // ~26 weeks
@@ -56,7 +57,8 @@ export default async function HabitsPage() {
 
   return (
     <div>
-      <PageHeader title="Habits" subtitle="Small consistent actions, tracked daily." />
+      <PageHeader
+        image={photoUrl("habits")} title="Habits" subtitle="Small consistent actions, tracked daily." />
 
       <Card className="mb-6">
         <form action={createHabit} className="space-y-3">

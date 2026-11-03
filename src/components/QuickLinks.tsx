@@ -13,6 +13,8 @@ import {
   Bot,
   Trophy,
   Mountain,
+  Compass,
+  Lightbulb,
   type LucideIcon,
 } from "lucide-react";
 
@@ -20,6 +22,8 @@ type QuickLink = { href: string; label: string; icon: LucideIcon; accent: string
 
 const QUICK_LINKS: QuickLink[] = [
   { href: "/progress", label: "Progress", icon: Trophy, accent: "text-yellow-300" },
+  { href: "/systems", label: "Systems", icon: Compass, accent: "text-indigo-300" },
+  { href: "/lessons", label: "Lessons", icon: Lightbulb, accent: "text-amber-300" },
   { href: "/journal", label: "Journal", icon: NotebookPen, accent: "text-sky-400" },
   { href: "/goals", label: "Goals", icon: Target, accent: "text-indigo-400" },
   { href: "/habits", label: "Habits", icon: Flame, accent: "text-orange-400" },

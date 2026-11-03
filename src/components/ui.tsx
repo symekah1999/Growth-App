@@ -6,11 +6,44 @@ export function PageHeader({
   title,
   subtitle,
   action,
+  image,
+  eyebrow,
 }: {
   title: string;
   subtitle?: string;
   action?: ReactNode;
+  /** Optional photo URL — renders a full-width hero banner. */
+  image?: string;
+  /** Small label above the title (hero only). */
+  eyebrow?: string;
 }) {
+  if (image) {
+    return (
+      <div className="relative mb-6 overflow-hidden rounded-2xl border border-neutral-800 bg-gradient-to-br from-indigo-950 via-neutral-900 to-neutral-950">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={image}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full object-cover"
+          loading="eager"
+          decoding="async"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-neutral-950/10" />
+        <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/70 via-transparent to-transparent" />
+        <div className="relative flex min-h-[11rem] flex-wrap items-end justify-between gap-4 px-5 pb-5 pt-16 sm:min-h-[13rem] sm:px-7 sm:pb-6">
+          <div className="max-w-2xl">
+            {eyebrow && (
+              <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">{eyebrow}</p>
+            )}
+            <h1 className="text-3xl font-semibold tracking-tight text-white drop-shadow-sm sm:text-4xl">{title}</h1>
+            {subtitle && <p className="mt-1.5 text-sm leading-relaxed text-neutral-200 sm:text-base">{subtitle}</p>}
+          </div>
+          {action && <div className="rounded-xl bg-neutral-950/50 px-3 py-2 backdrop-blur">{action}</div>}
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
       <div>
@@ -24,7 +57,14 @@ export function PageHeader({
 
 export function Card({ className, children }: { className?: string; children: ReactNode }) {
   return (
-    <div className={cn("rounded-xl border border-neutral-800 bg-neutral-900/50 p-5", className)}>
+    <div
+      className={cn(
+        "rounded-xl border border-neutral-800 bg-neutral-900/50",
+        // cn() doesn't merge Tailwind classes, so let callers opt out of the default padding with "p-0".
+        !className?.split(/\s+/).includes("p-0") && "p-5",
+        className,
+      )}
+    >
       {children}
     </div>
   );

@@ -9,6 +9,7 @@ import { daysLeftLabel, goalPacing, PACING_COLOR, pacingSortKey } from "@/lib/pa
 import { PacingBadge, PacedProgressBar } from "@/components/PacingBadge";
 import { GoalsTimeline } from "@/components/charts/GoalsTimeline";
 import Link from "next/link";
+import { photoUrl } from "@/lib/images";
 
 const CATEGORIES = ["general", "career", "health", "finance", "spiritual", "relationships", "learning"];
 
@@ -57,7 +58,8 @@ export default async function GoalsPage({
 
   return (
     <div>
-      <PageHeader title="Goals" subtitle="What you're building toward, with deadlines that keep you honest." />
+      <PageHeader
+        image={photoUrl("goals")} title="Goals" subtitle="What you're building toward, with deadlines that keep you honest." />
 
       <Card className="mb-6">
         <form action={createGoal} className="space-y-3">

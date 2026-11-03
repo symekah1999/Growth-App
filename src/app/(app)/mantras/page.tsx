@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/auth";
 import { asc, eq } from "drizzle-orm";
 import { PageHeader, Card, EmptyState, Input, Textarea, Button } from "@/components/ui";
 import { addMantra, deleteMantra, addValue, deleteValue } from "./actions";
+import { photoUrl } from "@/lib/images";
 
 export default async function MantrasPage() {
   const user = await requireUser();
@@ -15,7 +16,8 @@ export default async function MantrasPage() {
 
   return (
     <div>
-      <PageHeader title="Mantras & Non-Negotiable Values" subtitle="The words you return to when it's hard to think straight." />
+      <PageHeader
+        image={photoUrl("mantras")} title="Mantras & Non-Negotiable Values" subtitle="The words you return to when it's hard to think straight." />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div>

@@ -4,6 +4,7 @@ import { asc } from "drizzle-orm";
 import { PageHeader, Card, EmptyState } from "@/components/ui";
 import { getVerseOfTheDay } from "@/lib/daily";
 import Link from "next/link";
+import { photoUrl } from "@/lib/images";
 
 export default async function BiblePage() {
   const books = await db.select().from(bibleBooks).orderBy(asc(bibleBooks.sortOrder));
@@ -26,7 +27,7 @@ export default async function BiblePage() {
 
   return (
     <div>
-      <PageHeader title="Bible" subtitle="King James Version — the whole text, always available." />
+      <PageHeader image={photoUrl("bible")} title="Bible" subtitle="King James Version — the whole text, always available." />
 
       {verse && (
         <Card className="mb-6 border-indigo-900/60 bg-indigo-950/20">
