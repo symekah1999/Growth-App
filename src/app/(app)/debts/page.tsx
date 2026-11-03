@@ -80,10 +80,22 @@ export default async function DebtsPage({
         <form action={createDebt} className="space-y-3">
           <Input name="name" placeholder="Debt name (e.g. Visa card, Student loan)" required />
           <div className="grid gap-3 sm:grid-cols-4">
-            <Input type="number" step="0.01" name="principal" placeholder="Original amount" required />
-            <Input type="number" step="0.01" name="balance" placeholder="Current balance (defaults to original)" />
-            <Input type="number" step="0.01" name="interestRateApr" placeholder="APR %" />
-            <Input type="number" step="0.01" name="minPayment" placeholder="Min payment / mo" />
+            <div>
+              <label className="mb-1 block text-xs text-neutral-500">Original amount</label>
+              <Input type="number" step="0.01" min="0" name="principal" placeholder="e.g. 50000" required />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-neutral-500">Current balance</label>
+              <Input type="number" step="0.01" min="0" name="balance" placeholder="Blank = original" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-neutral-500">APR % (yearly interest rate)</label>
+              <Input type="number" step="0.01" min="0" name="interestRateApr" placeholder="e.g. 18 (0 if none)" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-neutral-500">Min payment / month</label>
+              <Input type="number" step="0.01" min="0" name="minPayment" placeholder="e.g. 2500" />
+            </div>
           </div>
           <div className="flex justify-end">
             <Button type="submit">Add debt</Button>
