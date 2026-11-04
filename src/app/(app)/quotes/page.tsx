@@ -8,6 +8,7 @@ import { getQuoteOfTheDay } from "@/lib/daily";
 import { QUOTE_CATEGORIES, QUOTE_LIBRARY, categoryLabel } from "@/db/seed-data/quote-library";
 import { Bookmark, BookmarkCheck, Search } from "lucide-react";
 import Link from "next/link";
+import { ShowMore } from "@/components/ShowMore";
 import { photoUrl } from "@/lib/images";
 
 type Params = { tab?: string; cat?: string; q?: string };
@@ -122,7 +123,7 @@ export default async function QuotesPage({ searchParams }: { searchParams: Promi
         libraryResults.length === 0 ? (
           <EmptyState title="No quotes match" subtitle="Try a different theme or search term." />
         ) : (
-          <div className="columns-1 gap-3 sm:columns-2 lg:columns-3">
+          <ShowMore key={`lib-${cat ?? ""}-${q ?? ""}`} initial={24} label="More quotes" className="columns-1 gap-3 sm:columns-2 lg:columns-3 xl:columns-4">
             {libraryResults.map((x) => {
               const saved = savedTexts.has(x.text);
               return (
@@ -153,7 +154,7 @@ export default async function QuotesPage({ searchParams }: { searchParams: Promi
                 </Card>
               );
             })}
-          </div>
+          </ShowMore>
         )
       ) : (
         <>
@@ -188,7 +189,7 @@ export default async function QuotesPage({ searchParams }: { searchParams: Promi
               subtitle={rows.length === 0 ? "Save quotes from the Library, or add your own above." : "Try a different theme or search."}
             />
           ) : (
-            <div className="columns-1 gap-3 sm:columns-2 lg:columns-3">
+            <ShowMore key={`mine-${cat ?? ""}-${q ?? ""}`} initial={24} label="More quotes" className="columns-1 gap-3 sm:columns-2 lg:columns-3 xl:columns-4">
               {mineResults.map((x) => (
                 <Card key={x.id} className="mb-3 break-inside-avoid">
                   <p className="text-[15px] leading-relaxed text-neutral-100">&ldquo;{x.text}&rdquo;</p>
@@ -206,7 +207,7 @@ export default async function QuotesPage({ searchParams }: { searchParams: Promi
                   </div>
                 </Card>
               ))}
-            </div>
+            </ShowMore>
           )}
         </>
       )}

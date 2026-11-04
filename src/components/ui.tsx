@@ -19,7 +19,7 @@ export function PageHeader({
 }) {
   if (image) {
     return (
-      <div className="relative mb-6 overflow-hidden rounded-2xl border border-neutral-800 bg-gradient-to-br from-indigo-950 via-neutral-900 to-neutral-950">
+      <div className="relative mb-5 overflow-hidden rounded-2xl border border-neutral-800 bg-gradient-to-br from-indigo-950 via-neutral-900 to-neutral-950">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={image}
@@ -31,13 +31,13 @@ export function PageHeader({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-neutral-950/10" />
         <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/70 via-transparent to-transparent" />
-        <div className="relative flex min-h-[11rem] flex-wrap items-end justify-between gap-4 px-5 pb-5 pt-16 sm:min-h-[13rem] sm:px-7 sm:pb-6">
+        <div className="relative flex min-h-[8rem] flex-wrap items-end justify-between gap-3 px-4 pb-4 pt-10 sm:min-h-[9.5rem] sm:px-6 sm:pb-5">
           <div className="max-w-2xl">
             {eyebrow && (
               <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">{eyebrow}</p>
             )}
-            <h1 className="text-3xl font-semibold tracking-tight text-white drop-shadow-sm sm:text-4xl">{title}</h1>
-            {subtitle && <p className="mt-1.5 text-sm leading-relaxed text-neutral-200 sm:text-base">{subtitle}</p>}
+            <h1 className="text-2xl font-semibold tracking-tight text-white drop-shadow-sm sm:text-3xl">{title}</h1>
+            {subtitle && <p className="mt-1 text-sm leading-relaxed text-neutral-200">{subtitle}</p>}
           </div>
           {action && <div className="rounded-xl bg-neutral-950/50 px-3 py-2 backdrop-blur">{action}</div>}
         </div>
@@ -45,7 +45,7 @@ export function PageHeader({
     );
   }
   return (
-    <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+    <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-neutral-50">{title}</h1>
         {subtitle && <p className="mt-1 text-sm text-neutral-400">{subtitle}</p>}
@@ -61,7 +61,7 @@ export function Card({ className, children }: { className?: string; children: Re
       className={cn(
         "rounded-xl border border-neutral-800 bg-neutral-900/50",
         // cn() doesn't merge Tailwind classes, so let callers opt out of the default padding with "p-0".
-        !className?.split(/\s+/).includes("p-0") && "p-5",
+        !className?.split(/\s+/).includes("p-0") && "p-4",
         className,
       )}
     >
@@ -133,7 +133,7 @@ export function ProgressBar({ value, className }: { value: number; className?: s
 
 export function EmptyState({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-neutral-800 px-6 py-14 text-center">
+    <div className="rounded-xl border border-dashed border-neutral-800 px-6 py-10 text-center">
       <p className="text-sm font-medium text-neutral-300">{title}</p>
       {subtitle && <p className="mt-1 text-sm text-neutral-500">{subtitle}</p>}
     </div>

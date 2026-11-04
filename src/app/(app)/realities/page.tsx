@@ -4,6 +4,7 @@ import { REALITIES, REALITY_THEMES, getRealityOfTheDay } from "@/db/seed-data/re
 import { ArrowRight, NotebookPen, Target } from "lucide-react";
 import Link from "next/link";
 import { photoUrl } from "@/lib/images";
+import { ShowMore } from "@/components/ShowMore";
 
 function journalHref(truth: string) {
   return `/journal?prompt=${encodeURIComponent(truth)}`;
@@ -67,7 +68,7 @@ export default async function RealitiesPage({ searchParams }: { searchParams: Pr
         ))}
       </div>
 
-      <div className="space-y-8">
+      <ShowMore initial={4} step={4} label="More themes" className="space-y-6">
         {themes.map((t) => {
           const items = REALITIES.filter((r) => r.theme === t.slug);
           return (
@@ -76,7 +77,7 @@ export default async function RealitiesPage({ searchParams }: { searchParams: Pr
                 <h2 className="text-lg font-semibold text-neutral-100">{t.label}</h2>
                 <p className="text-sm text-neutral-500">{t.blurb}</p>
               </div>
-              <div className="grid gap-3 md:grid-cols-2">
+              <ShowMore initial={theme ? 12 : 4} step={8} label={`More in ${t.label}`} className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {items.map((r, i) => (
                   <Card key={r.id} className="flex flex-col">
                     <div className="flex items-start gap-3">
@@ -102,11 +103,11 @@ export default async function RealitiesPage({ searchParams }: { searchParams: Pr
                     </div>
                   </Card>
                 ))}
-              </div>
+              </ShowMore>
             </section>
           );
         })}
-      </div>
+      </ShowMore>
     </div>
   );
 }

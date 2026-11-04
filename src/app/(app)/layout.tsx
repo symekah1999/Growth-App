@@ -24,8 +24,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </form>
         }
       />
-      <aside className="hidden w-64 shrink-0 flex-col md:flex border-r border-neutral-800/80 bg-neutral-900/60">
-        <div className="border-b border-neutral-800/80 px-5 py-5">
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col md:flex border-r border-neutral-800/80 bg-neutral-900/60">
+        <div className="border-b border-neutral-800/80 px-5 py-4">
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-fuchsia-500 shadow-lg shadow-indigo-950/40">
               <Sprout size={16} className="text-white" />
@@ -48,7 +48,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </form>
       </aside>
       <main className="min-w-0 flex-1 overflow-y-auto bg-[radial-gradient(ellipse_120%_60%_at_50%_-10%,rgba(99,102,241,0.08),transparent)]">
-        <div className="mx-auto max-w-5xl px-4 py-6 sm:px-8 sm:py-8">{children}</div>
+        <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6 sm:py-6 lg:px-8">{children}</div>
       </main>
       <ChatWidget />
     </div>

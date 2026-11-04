@@ -117,11 +117,11 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <Card className="relative mb-6 overflow-hidden border-neutral-800 bg-gradient-to-br from-indigo-950 via-neutral-900 to-neutral-950 p-0">
+      <Card className="relative mb-4 overflow-hidden border-neutral-800 bg-gradient-to-br from-indigo-950 via-neutral-900 to-neutral-950 p-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={photoUrl("dashboard")} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/55 to-neutral-950/5" />
-        <div className="relative flex min-h-[13rem] flex-wrap items-end justify-between gap-4 px-5 pb-5 pt-20 sm:min-h-[15rem] sm:px-7 sm:pb-6">
+        <div className="relative flex min-h-[9rem] flex-wrap items-end justify-between gap-3 px-4 pb-4 pt-12 sm:min-h-[10.5rem] sm:px-6 sm:pb-5">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">{formatToday()}</p>
             <h1 className="mt-1 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Welcome back</h1>
@@ -160,15 +160,15 @@ export default async function DashboardPage() {
         </div>
       </Card>
 
-      <div className="mb-6">
+      <div className="mb-4">
         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-500">Jump to</p>
         <QuickLinks />
       </div>
 
-      <div className="mb-6 grid gap-4 lg:grid-cols-2">
+      <div className="mb-4 grid gap-4 lg:grid-cols-2">
         <Link
           href="/lessons"
-          className="group relative block min-h-[15rem] overflow-hidden rounded-xl border border-amber-900/50 bg-neutral-900"
+          className="group relative block min-h-[12rem] overflow-hidden rounded-xl border border-amber-900/50 bg-neutral-900"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -178,7 +178,7 @@ export default async function DashboardPage() {
             className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/75 to-neutral-950/20" />
-          <div className="relative flex h-full min-h-[15rem] flex-col justify-end p-5">
+          <div className="relative flex h-full min-h-[12rem] flex-col justify-end p-5">
             <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-amber-300">
               <Sunrise size={13} /> Great life of the day
             </p>
@@ -192,7 +192,7 @@ export default async function DashboardPage() {
         </Link>
         <Link
           href="/systems"
-          className="group relative block min-h-[15rem] overflow-hidden rounded-xl border border-indigo-900/50 bg-neutral-900"
+          className="group relative block min-h-[12rem] overflow-hidden rounded-xl border border-indigo-900/50 bg-neutral-900"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -202,7 +202,7 @@ export default async function DashboardPage() {
             className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/75 to-neutral-950/20" />
-          <div className="relative flex h-full min-h-[15rem] flex-col justify-end p-5">
+          <div className="relative flex h-full min-h-[12rem] flex-col justify-end p-5">
             <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-300">
               <Compass size={13} /> System of the day
             </p>
@@ -216,7 +216,7 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-2">
+      <div className="mb-4 grid gap-4 sm:grid-cols-2">
         {verse ? (
           <Card className="border-indigo-900/60 bg-indigo-950/20">
             <p className="text-xs font-medium uppercase tracking-wide text-indigo-400">Verse of the day</p>
@@ -257,7 +257,7 @@ export default async function DashboardPage() {
         )}
       </div>
 
-      <Card className="mb-6 border-orange-900/40 bg-orange-950/10">
+      <Card className="mb-4 border-orange-900/40 bg-orange-950/10">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <p className="text-xs font-medium uppercase tracking-wide text-orange-300">Reality of the day</p>
@@ -275,7 +275,7 @@ export default async function DashboardPage() {
       </Card>
 
       {randomMantra && (
-        <Card className="mb-6 text-center">
+        <Card className="mb-4 text-center">
           <p className="text-sm italic text-neutral-300">&ldquo;{randomMantra.text}&rdquo;</p>
         </Card>
       )}

@@ -12,6 +12,7 @@ import {
 } from "@/db/seed-data/life-systems";
 import { photoUrl } from "@/lib/images";
 import { adoptSystemHabit } from "./actions";
+import { ShowMore } from "@/components/ShowMore";
 import { Check, Compass, NotebookPen, Plus, Search, Target } from "lucide-react";
 
 const CAT_STYLE: Record<string, string> = {
@@ -187,7 +188,7 @@ export default async function SystemsPage({
       {visible.length === 0 ? (
         <p className="py-10 text-center text-sm text-neutral-500">No systems match that search.</p>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+        <ShowMore key={`${c ?? ""}-${q ?? ""}`} initial={12} label="More systems" className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {visible.map((s) => (
             <Card key={s.id} className="flex flex-col transition hover:border-neutral-700">
               <div className="flex items-start justify-between gap-3">
@@ -197,7 +198,7 @@ export default async function SystemsPage({
                 </div>
                 <Badge className={`shrink-0 ${CAT_STYLE[s.category]}`}>{catLabel(s.category)}</Badge>
               </div>
-              <p className="mt-3 text-sm leading-relaxed text-neutral-300">{s.summary}</p>
+              <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-neutral-300">{s.summary}</p>
               <details className="group mt-3">
                 <summary className="cursor-pointer select-none text-xs font-medium text-indigo-300 hover:text-indigo-200">
                   How to run it
@@ -211,8 +212,8 @@ export default async function SystemsPage({
                   ))}
                 </ol>
               </details>
-              <div className="mt-auto pt-4">
-                <p className="mb-3 rounded-lg bg-neutral-950/60 px-3 py-2 text-xs text-neutral-300">
+              <div className="mt-auto pt-3">
+                <p className="mb-2.5 rounded-lg bg-neutral-950/60 px-3 py-2 text-xs text-neutral-300">
                   <span className="font-semibold text-neutral-100">Try today:</span> {s.tryToday}
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -227,7 +228,7 @@ export default async function SystemsPage({
               </div>
             </Card>
           ))}
-        </div>
+        </ShowMore>
       )}
     </div>
   );

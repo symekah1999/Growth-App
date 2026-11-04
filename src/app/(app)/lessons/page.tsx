@@ -8,6 +8,7 @@ import { Badge, Button, Card, Input, PageHeader, Select, Textarea } from "@/comp
 import { RESILIENCE_STORIES, STORY_FIELDS, getStoryOfTheDay, type ResilienceStory } from "@/db/seed-data/resilience";
 import { photoUrl, storyPhoto } from "@/lib/images";
 import { addLesson, deleteLesson, saveStoryLesson } from "./actions";
+import { ShowMore } from "@/components/ShowMore";
 import { BookmarkPlus, Flame, History, Lightbulb, Mountain, NotebookPen, Sparkles, Sunrise, Target } from "lucide-react";
 
 type Lesson = typeof lifeLessons.$inferSelect;
@@ -337,7 +338,7 @@ export default async function LessonsPage({
             </Link>
           ))}
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
+        <ShowMore key={field ?? "all"} initial={8} label="More great lives" className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {library.map((s) => (
             <Card key={s.id} className="flex flex-col">
               <div className="flex items-start justify-between gap-3">
@@ -376,7 +377,7 @@ export default async function LessonsPage({
               </div>
             </Card>
           ))}
-        </div>
+        </ShowMore>
       </div>
     </div>
   );
