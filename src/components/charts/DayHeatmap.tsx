@@ -18,7 +18,15 @@ function stepFor(v: number) {
 const WEEKDAYS = ["Mon", "", "Wed", "", "Fri", "", "Sun"];
 
 /** GitHub-style grid: one column per week (Mon→Sun), oldest on the left. */
-export function DayHeatmap({ cells, emptyLabel = "nothing logged" }: { cells: HeatCell[]; emptyLabel?: string }) {
+export function DayHeatmap({
+  cells,
+  emptyLabel = "nothing logged",
+  fullLabel = "all done",
+}: {
+  cells: HeatCell[];
+  emptyLabel?: string;
+  fullLabel?: string;
+}) {
   const [hover, setHover] = useState<{ cell: HeatCell; x: number; y: number } | null>(null);
 
   if (cells.length === 0) return null;
@@ -98,7 +106,7 @@ export function DayHeatmap({ cells, emptyLabel = "nothing logged" }: { cells: He
         {STEPS.map((c) => (
           <span key={c} className="h-[11px] w-[11px] rounded-[2px]" style={{ backgroundColor: c }} />
         ))}
-        <span>all done</span>
+        <span>{fullLabel}</span>
       </div>
 
       {hover && (

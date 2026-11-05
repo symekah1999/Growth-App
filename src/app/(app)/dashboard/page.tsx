@@ -19,6 +19,9 @@ import { Compass, Sunrise } from "lucide-react";
 import { getStoryOfTheDay } from "@/db/seed-data/resilience";
 import { getSystemOfTheDay } from "@/db/seed-data/life-systems";
 import { photoUrl, storyPhoto } from "@/lib/images";
+import { currentStreak, loadGratitude, onThisDay, resurfaced as gratitudeResurfaced } from "@/lib/gratitude";
+import { getGratitudePrompt } from "@/db/schema-gratitude";
+import { Heart } from "lucide-react";
 import Link from "next/link";
 
 export default async function DashboardPage() {
@@ -49,6 +52,10 @@ export default async function DashboardPage() {
   const reality = getRealityOfTheDay(today);
   const story = getStoryOfTheDay(today);
   const system = getSystemOfTheDay(today);
+  const gratitudeRows = await loadGratitude(user.id, 400);
+  const gratitudeToday = (gratitudeRows ?? []).filter((r) => r.entryDate === today).length;
+  const gratitudeStreak = currentStreak((gratitudeRows ?? []).map((r) => r.entryDate), today);
+  const gratitudeMemory = gratitudeRows ? (onThisDay(gratitudeRows, today)[0] ?? gratitudeResurfaced(gratitudeRows, today)) : null;
 
   const progressData = await loadProgressData(user.id);
   const score = lifeScore(progressData, today);
@@ -273,6 +280,29 @@ export default async function DashboardPage() {
           </Link>
         </div>
       </Card>
+
+      {gratitudeRows && (
+        <Link href="/gratitude" className="mb-4 block">
+          <Card className="border-rose-900/40 bg-rose-950/10 transition hover:border-rose-800/70">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-rose-300">
+                  <Heart size={12} /> Gratitude
+                </p>
+                <p className="mt-1 text-sm text-neutral-100">
+                  {gratitudeMemory ? <>&ldquo;{gratitudeMemory.text}&rdquo;</> : getGratitudePrompt(today)}
+                </p>
+              </div>
+              <div className="text-right text-xs text-neutral-400">
+                <p>
+                  <span className="text-base font-semibold text-neutral-50">{gratitudeToday}</span> today
+                </p>
+                <p>{gratitudeStreak}-day streak</p>
+              </div>
+            </div>
+          </Card>
+        </Link>
+      )}
 
       {randomMantra && (
         <Card className="mb-4 text-center">

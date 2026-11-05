@@ -28,6 +28,8 @@ import { REALITIES, REALITY_THEMES, getRealityOfTheDay } from "@/db/seed-data/re
 import { LIFE_SYSTEMS, SYSTEM_CATEGORIES, getSystemOfTheDay } from "@/db/seed-data/life-systems";
 import { RESILIENCE_STORIES, STORY_FIELDS, getStoryOfTheDay } from "@/db/seed-data/resilience";
 import { lifeLessons, LESSON_CATEGORIES } from "@/db/schema-lessons";
+import { gratitudeEntries, GRATITUDE_CATEGORIES } from "@/db/schema-gratitude";
+import { currentStreak, longestStreak, parseItems } from "@/lib/gratitude";
 
 type ToolDef = Anthropic.Tool;
 type Executor = (userId: string, input: Record<string, unknown>) => Promise<unknown>;
@@ -652,6 +654,77 @@ define(
       .orderBy(desc(lifeLessons.learnedOn))
       .limit(limit);
     return rows.map(({ lesson, context, category, source, learnedOn }) => ({ lesson, context, category, source, learnedOn }));
+  },
+);
+
+define(
+  {
+    name: "log_gratitude",
+    description: `Save things the user is thankful or grateful for to their Gratitude log. Pass one or more short items in "items". category is one of: ${GRATITUDE_CATEGORIES.map((c) => c.key).join(", ")}. date is YYYY-MM-DD (defaults to today). Use when the user says what they are grateful for, or asks you to log their gratitude.`,
+    input_schema: {
+      type: "object",
+      properties: {
+        items: { type: "array", items: { type: "string" } },
+        category: { type: "string" },
+        date: { type: "string" },
+      },
+      required: ["items"],
+    },
+  },
+  async (userId, input) => {
+    const raw = Array.isArray(input.items) ? input.items.map(String).join("\n") : String(input.items ?? "");
+    const items = parseItems(raw);
+    if (items.length === 0) return { saved: 0 };
+    const cat = String(input.category ?? "general");
+    const date = String(input.date ?? "");
+    const entryDate = /^\d{4}-\d{2}-\d{2}$/.test(date) && date <= todayISO() ? date : todayISO();
+    try {
+      await db.insert(gratitudeEntries).values(
+        items.map((text) => ({
+          userId,
+          text,
+          category: GRATITUDE_CATEGORIES.some((c) => c.key === cat) ? cat : "general",
+          entryDate,
+        })),
+      );
+    } catch {
+      return { error: "The gratitude table isn't set up yet. Run drizzle/manual/gratitude.sql in the Neon SQL editor." };
+    }
+    return { saved: items.length, entryDate };
+  },
+);
+
+define(
+  {
+    name: "get_gratitude",
+    description: "Read the user's gratitude log, newest first, plus their streak. Optional category filter and limit (default 30). Use to remind the user of what they're thankful for, especially when they feel low.",
+    input_schema: {
+      type: "object",
+      properties: { category: { type: "string" }, limit: { type: "number" } },
+    },
+  },
+  async (userId, input) => {
+    const limit = Math.min(Number(input.limit ?? 30) || 30, 200);
+    try {
+      const rows = await db
+        .select()
+        .from(gratitudeEntries)
+        .where(
+          input.category
+            ? and(eq(gratitudeEntries.userId, userId), eq(gratitudeEntries.category, String(input.category)))
+            : eq(gratitudeEntries.userId, userId),
+        )
+        .orderBy(desc(gratitudeEntries.entryDate), desc(gratitudeEntries.createdAt))
+        .limit(limit);
+      const dates = rows.map((r) => r.entryDate);
+      return {
+        currentStreak: currentStreak(dates, todayISO()),
+        longestStreakInResults: longestStreak(dates),
+        entries: rows.map(({ text, category, entryDate }) => ({ text, category, entryDate })),
+      };
+    } catch {
+      return { error: "The gratitude table isn't set up yet. Run drizzle/manual/gratitude.sql in the Neon SQL editor." };
+    }
   },
 );
 

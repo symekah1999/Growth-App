@@ -21,6 +21,7 @@ import {
   Download,
   Compass,
   Lightbulb,
+  Heart,
   type LucideIcon,
 } from "lucide-react";
 
@@ -53,6 +54,7 @@ const sections: { label: string; links: LinkDef[] }[] = [
       { href: "/bible", label: "Bible", icon: BookOpen },
       { href: "/quotes", label: "Quotes", icon: Quote },
       { href: "/lessons", label: "Lessons of Life", icon: Lightbulb },
+      { href: "/gratitude", label: "Gratitude", icon: Heart },
       { href: "/realities", label: "Realities of Life", icon: Mountain },
     ],
   },
