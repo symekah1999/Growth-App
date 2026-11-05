@@ -27,6 +27,8 @@ import {
   Search,
   TrendingUp,
   Archive,
+  Bell,
+  Zap,
   type LucideIcon,
 } from "lucide-react";
 
@@ -41,7 +43,9 @@ const sections: { label: string; links: LinkDef[] }[] = [
       { href: "/review", label: "Weekly review", icon: CalendarCheck },
       { href: "/progress", label: "Progress", icon: Trophy },
       { href: "/search", label: "Search", icon: Search },
+      { href: "/capture", label: "Quick capture", icon: Zap },
       { href: "/trends", label: "Trends", icon: TrendingUp },
+      { href: "/reminders", label: "Reminders", icon: Bell },
       { href: "/export", label: "Backup & export", icon: Archive },
       { href: "/chat", label: "Assistant", icon: Bot },
       { href: "/install", label: "Install app", icon: Download },

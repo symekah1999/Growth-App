@@ -3,6 +3,7 @@ import { Nav } from "@/components/nav";
 import { signOut } from "@/app/logout/actions";
 import { ChatWidget } from "@/components/chat/ChatWidget";
 import { MobileNav } from "@/components/MobileNav";
+import { QueueFlusher } from "@/components/QueueFlusher";
 import { LogOut, Sprout } from "lucide-react";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -51,6 +52,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6 sm:py-6 lg:px-8">{children}</div>
       </main>
       <ChatWidget />
+      <QueueFlusher />
     </div>
   );
 }
