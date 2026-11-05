@@ -16,12 +16,18 @@ import {
   Compass,
   Lightbulb,
   Heart,
+  ClipboardCheck,
+  CalendarCheck,
+  Search,
   type LucideIcon,
 } from "lucide-react";
 
 type QuickLink = { href: string; label: string; icon: LucideIcon; accent: string };
 
 const QUICK_LINKS: QuickLink[] = [
+  { href: "/checkin", label: "Check-in", icon: ClipboardCheck, accent: "text-emerald-400" },
+  { href: "/review", label: "Review", icon: CalendarCheck, accent: "text-sky-400" },
+  { href: "/search", label: "Search", icon: Search, accent: "text-neutral-300" },
   { href: "/progress", label: "Progress", icon: Trophy, accent: "text-yellow-300" },
   { href: "/systems", label: "Systems", icon: Compass, accent: "text-indigo-300" },
   { href: "/lessons", label: "Lessons", icon: Lightbulb, accent: "text-amber-300" },

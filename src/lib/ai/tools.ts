@@ -29,6 +29,7 @@ import { LIFE_SYSTEMS, SYSTEM_CATEGORIES, getSystemOfTheDay } from "@/db/seed-da
 import { RESILIENCE_STORIES, STORY_FIELDS, getStoryOfTheDay } from "@/db/seed-data/resilience";
 import { lifeLessons, LESSON_CATEGORIES } from "@/db/schema-lessons";
 import { gratitudeEntries, GRATITUDE_CATEGORIES } from "@/db/schema-gratitude";
+import { searchAll } from "@/lib/search";
 import { currentStreak, longestStreak, parseItems } from "@/lib/gratitude";
 
 type ToolDef = Anthropic.Tool;
@@ -725,6 +726,22 @@ define(
     } catch {
       return { error: "The gratitude table isn't set up yet. Run drizzle/manual/gratitude.sql in the Neon SQL editor." };
     }
+  },
+);
+
+define(
+  {
+    name: "search_my_data",
+    description: "Search everything the user has written or saved (journal, goals, habits, to-dos, lessons, gratitude, mantras, quotes) plus the built-in libraries (life systems, great lives, realities, quote library, Bible verses) for a word or phrase. Use when the user asks 'what did I write about X' or wants to find something.",
+    input_schema: {
+      type: "object",
+      properties: { query: { type: "string" } },
+      required: ["query"],
+    },
+  },
+  async (userId, input) => {
+    const groups = await searchAll(userId, String(input.query ?? ""));
+    return groups.map((g) => ({ section: g.label, total: g.total, results: g.items.slice(0, 4).map((i) => ({ title: i.title, snippet: i.snippet, meta: i.meta })) }));
   },
 );
 

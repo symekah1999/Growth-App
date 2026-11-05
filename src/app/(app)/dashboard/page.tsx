@@ -168,6 +168,13 @@ export default async function DashboardPage() {
       </Card>
 
       <div className="mb-4">
+        <form action="/search" className="mb-3">
+          <input
+            name="q"
+            placeholder="Search your journal, goals, lessons, quotes, Bible…"
+            className="w-full rounded-lg border border-neutral-800 bg-neutral-900/60 px-3 py-2 text-sm text-neutral-100 outline-none placeholder:text-neutral-500 focus:border-indigo-500"
+          />
+        </form>
         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-500">Jump to</p>
         <QuickLinks />
       </div>

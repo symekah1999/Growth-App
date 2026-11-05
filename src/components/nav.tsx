@@ -22,6 +22,9 @@ import {
   Compass,
   Lightbulb,
   Heart,
+  ClipboardCheck,
+  CalendarCheck,
+  Search,
   type LucideIcon,
 } from "lucide-react";
 
@@ -32,7 +35,10 @@ const sections: { label: string; links: LinkDef[] }[] = [
     label: "Overview",
     links: [
       { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/checkin", label: "Daily check-in", icon: ClipboardCheck },
+      { href: "/review", label: "Weekly review", icon: CalendarCheck },
       { href: "/progress", label: "Progress", icon: Trophy },
+      { href: "/search", label: "Search", icon: Search },
       { href: "/chat", label: "Assistant", icon: Bot },
       { href: "/install", label: "Install app", icon: Download },
     ],
