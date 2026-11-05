@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Density: Tailwind spacing and text are rem-based, so scaling the root size
+   makes the whole app compact. Compact is the default; "comfortable" restores 16px. */
+html { font-size: 14.5px; }
+html[data-density="comfortable"] { font-size: 16px; }
+
 :root {
   --background: #0a0a0a;
   --foreground: #ededed;

@@ -4,6 +4,8 @@ import { signOut } from "@/app/logout/actions";
 import { ChatWidget } from "@/components/chat/ChatWidget";
 import { MobileNav } from "@/components/MobileNav";
 import { QueueFlusher } from "@/components/QueueFlusher";
+import { CommandPalette, JumpButton } from "@/components/CommandPalette";
+import { DensityToggle } from "@/components/DensityToggle";
 import { LogOut, Sprout } from "lucide-react";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -26,7 +28,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         }
       />
       <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col md:flex border-r border-neutral-800/80 bg-neutral-900/60">
-        <div className="border-b border-neutral-800/80 px-5 py-4">
+        <div className="border-b border-neutral-800/80 px-5 py-3">
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-fuchsia-500 shadow-lg shadow-indigo-950/40">
               <Sprout size={16} className="text-white" />
@@ -37,7 +39,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             </div>
           </div>
         </div>
+        <div className="px-3 pt-3"><JumpButton className="w-full" /></div>
         <Nav />
+        <div className="px-3 pb-1"><DensityToggle /></div>
         <form action={signOut} className="border-t border-neutral-800/80 p-3">
           <button
             type="submit"
@@ -49,10 +53,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </form>
       </aside>
       <main className="min-w-0 flex-1 overflow-y-auto bg-[radial-gradient(ellipse_120%_60%_at_50%_-10%,rgba(99,102,241,0.08),transparent)]">
-        <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6 sm:py-6 lg:px-8">{children}</div>
+        <div className="mx-auto max-w-6xl px-4 py-4 pb-24 sm:px-6 sm:py-5 md:pb-5 lg:px-8">{children}</div>
       </main>
       <ChatWidget />
       <QueueFlusher />
+      <CommandPalette />
     </div>
   );
 }

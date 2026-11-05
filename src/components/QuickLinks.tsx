@@ -52,14 +52,14 @@ const QUICK_LINKS: QuickLink[] = [
 
 export function QuickLinks() {
   return (
-    <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-6 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-9">
+    <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-6 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-9 xl:grid-cols-12">
       {QUICK_LINKS.map(({ href, label, icon: Icon, accent }) => (
         <Link
           key={href}
           href={href}
-          className="group flex w-[4.5rem] shrink-0 flex-col items-center gap-1.5 rounded-xl sm:w-auto border border-neutral-800 bg-neutral-900/60 px-1 py-2.5 text-center transition hover:border-neutral-700 hover:bg-neutral-800/60"
+          className="group flex w-[4.5rem] shrink-0 flex-col items-center gap-1 rounded-xl sm:w-auto border border-neutral-800 bg-neutral-900/60 px-1 py-2 text-center transition hover:border-neutral-700 hover:bg-neutral-800/60"
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-neutral-800/80 transition group-hover:scale-105">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-neutral-800/80 transition group-hover:scale-105">
             <Icon size={16} className={accent} strokeWidth={2} />
           </span>
           <span className="max-w-full truncate text-[11px] font-medium text-neutral-300 sm:text-xs">{label}</span>

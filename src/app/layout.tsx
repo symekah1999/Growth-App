@@ -31,7 +31,14 @@ export const viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="h-full antialiased">
+    <html lang="en" className="h-full antialiased" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var d=localStorage.getItem("growth-os-density");if(d==="comfortable")document.documentElement.dataset.density=d}catch(e){}`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col bg-neutral-950 text-neutral-100 font-sans">
         <ServiceWorkerRegister />
         {children}

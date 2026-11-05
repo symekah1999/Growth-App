@@ -17,7 +17,7 @@ export function ChatWidget() {
     <>
       <div
         className={cn(
-          "fixed bottom-20 right-5 z-40 w-[min(92vw,24rem)] origin-bottom-right overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-950 shadow-2xl shadow-black/50 transition-all duration-200 sm:bottom-24 sm:right-6",
+          "fixed bottom-36 right-5 z-40 w-[min(92vw,24rem)] origin-bottom-right overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-950 shadow-2xl shadow-black/50 transition-all duration-200 sm:right-6 md:bottom-24",
           open ? "h-[32rem] scale-100 opacity-100" : "pointer-events-none h-0 scale-95 opacity-0",
         )}
       >
@@ -29,7 +29,7 @@ export function ChatWidget() {
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label="Toggle assistant"
-        className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-fuchsia-600 text-white shadow-lg shadow-indigo-950/50 transition hover:scale-105 active:scale-95 sm:right-6"
+        className="fixed bottom-20 right-5 z-40 flex h-14 w-14 md:bottom-5 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-fuchsia-600 text-white shadow-lg shadow-indigo-950/50 transition hover:scale-105 active:scale-95 sm:right-6"
       >
         {open ? <X size={22} /> : <MessageCircle size={22} />}
       </button>

@@ -19,7 +19,7 @@ export function PageHeader({
 }) {
   if (image) {
     return (
-      <div className="relative mb-5 overflow-hidden rounded-2xl border border-neutral-800 bg-gradient-to-br from-indigo-950 via-neutral-900 to-neutral-950">
+      <div className="relative mb-4 overflow-hidden rounded-2xl border border-neutral-800 bg-gradient-to-br from-indigo-950 via-neutral-900 to-neutral-950">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={image}
@@ -31,7 +31,7 @@ export function PageHeader({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-neutral-950/10" />
         <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/70 via-transparent to-transparent" />
-        <div className="relative flex min-h-[8rem] flex-wrap items-end justify-between gap-3 px-4 pb-4 pt-10 sm:min-h-[9.5rem] sm:px-6 sm:pb-5">
+        <div className="relative flex min-h-[6.5rem] flex-wrap items-end justify-between gap-3 px-4 pb-3 pt-8 sm:min-h-[7.5rem] sm:px-6 sm:pb-4">
           <div className="max-w-2xl">
             {eyebrow && (
               <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">{eyebrow}</p>
@@ -45,7 +45,7 @@ export function PageHeader({
     );
   }
   return (
-    <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+    <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-neutral-50">{title}</h1>
         {subtitle && <p className="mt-1 text-sm text-neutral-400">{subtitle}</p>}
