@@ -1,4 +1,6 @@
 import { requireUser } from "@/lib/auth";
+import { ActionButton } from "@/components/ActionButton";
+import { addTodoFromText } from "../links/actions";
 import { PageHeader, Card } from "@/components/ui";
 import { REALITIES, REALITY_THEMES, getRealityOfTheDay } from "@/db/seed-data/realities";
 import { ArrowRight, NotebookPen, Target } from "lucide-react";
@@ -94,6 +96,7 @@ export default async function RealitiesPage({ searchParams }: { searchParams: Pr
                         <ArrowRight size={14} className="mt-0.5 shrink-0 text-amber-400" />
                         {r.action}
                       </div>
+                      <ActionButton action={addTodoFromText} fields={{ text: r.action }} label="Add to to-dos" doneLabel="On today's list" />
                       <Link
                         href={journalHref(r.truth)}
                         className="mt-2 inline-flex items-center gap-1 text-xs text-neutral-500 hover:text-neutral-300"

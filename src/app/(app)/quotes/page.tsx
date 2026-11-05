@@ -1,4 +1,6 @@
 import { db } from "@/db";
+import { ActionButton } from "@/components/ActionButton";
+import { makeMantra } from "../links/actions";
 import { quotes } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { desc, eq } from "drizzle-orm";
@@ -132,6 +134,7 @@ export default async function QuotesPage({ searchParams }: { searchParams: Promi
                   <div className="mt-3 flex items-center justify-between gap-2">
                     <div className="min-w-0">
                       <p className="truncate text-xs text-neutral-400">— {x.author}</p>
+                      <ActionButton action={makeMantra} fields={{ text: x.text }} label="Make mantra" doneLabel="In mantras" className="mt-1.5" />
                       {!cat && (
                         <Link href={href({ tab, cat: x.category })} className="text-[11px] text-neutral-600 hover:text-neutral-400">
                           {categoryLabel(x.category)}
@@ -197,6 +200,7 @@ export default async function QuotesPage({ searchParams }: { searchParams: Promi
                     <div className="flex min-w-0 items-center gap-2 text-xs text-neutral-400">
                       {x.author && <span className="truncate">— {x.author}</span>}
                       {x.category && <Badge>{categoryLabel(x.category)}</Badge>}
+                      <ActionButton action={makeMantra} fields={{ text: x.text }} label="Make mantra" doneLabel="In mantras" />
                     </div>
                     <form action={deleteQuote}>
                       <input type="hidden" name="id" value={x.id} />

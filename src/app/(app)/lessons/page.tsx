@@ -1,4 +1,6 @@
 import { db } from "@/db";
+import { ActionButton } from "@/components/ActionButton";
+import { addTodoFromText } from "../links/actions";
 import { lifeLessons, LESSON_CATEGORIES } from "@/db/schema-lessons";
 import { requireUser } from "@/lib/auth";
 import { addDaysISO, todayISO } from "@/lib/utils";
@@ -173,6 +175,7 @@ export default async function LessonsPage({
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             {!tableMissing && <SaveStoryButton story={story} />}
+            <ActionButton action={addTodoFromText} fields={{ text: story.action }} label="Add action to to-dos" doneLabel="On today's list" />
             <Link
               href={`/journal?prompt=${encodeURIComponent(`${story.name}: ${story.lesson}`)}`}
               className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-700 px-3 py-1.5 text-xs text-neutral-300 hover:bg-neutral-800"
@@ -289,7 +292,7 @@ export default async function LessonsPage({
                         </div>
                         {r.context && <p className="mt-1.5 text-sm leading-relaxed text-neutral-400">{r.context}</p>}
                         <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs text-neutral-500">
-                          <span>{fmtDate(r.learnedOn)}</span>
+                          <Link href={`/day?d=${r.learnedOn}`} className="hover:text-neutral-200 hover:underline">{fmtDate(r.learnedOn)}</Link>
                           <Badge>{catLabel(r.category)}</Badge>
                           {r.source && <span className="italic">— {r.source}</span>}
                         </div>
@@ -373,7 +376,10 @@ export default async function LessonsPage({
                 <p className="mb-3 border-l-2 border-amber-500/60 pl-3 text-sm font-medium leading-snug text-neutral-100">
                   {s.lesson}
                 </p>
-                {!tableMissing && <SaveStoryButton story={s} small />}
+                <div className="flex flex-wrap items-center gap-2">
+                  {!tableMissing && <SaveStoryButton story={s} small />}
+                  <ActionButton action={addTodoFromText} fields={{ text: s.action }} label="Add to to-dos" doneLabel="On today's list" />
+                </div>
               </div>
             </Card>
           ))}

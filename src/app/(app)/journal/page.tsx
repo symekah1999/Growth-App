@@ -140,7 +140,7 @@ export default async function JournalPage({
                       {e.title || formatDate(e.entryDate)}
                     </Link>
                     {e.mood && <Badge>{e.mood}</Badge>}
-                    <span className="text-xs text-neutral-500">{formatDate(e.entryDate)}</span>
+                    <Link href={`/day?d=${e.entryDate}`} className="text-xs text-neutral-500 hover:text-neutral-300 hover:underline">{formatDate(e.entryDate)}</Link>
                   </div>
                   <p className="mt-2 line-clamp-3 whitespace-pre-wrap text-sm text-neutral-400">{e.body}</p>
                   {e.tags.length > 0 && (

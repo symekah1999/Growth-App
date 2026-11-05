@@ -268,7 +268,7 @@ export default async function GratitudePage({ searchParams }: { searchParams: Pr
             {[...groups.entries()].map(([date, items]) => (
               <Card key={date}>
                 <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                  {fmtDay(date)} · {items.length}
+                  <Link href={`/day?d=${date}`} className="hover:text-neutral-300 hover:underline">{fmtDay(date)}</Link> · {items.length}
                 </p>
                 <ul>
                   {items.map((r) => (

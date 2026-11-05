@@ -1,4 +1,6 @@
 import { db } from "@/db";
+import { ActionButton } from "@/components/ActionButton";
+import { addTodoFromText, makeGoalFromSystem } from "../links/actions";
 import { habits } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { and, eq } from "drizzle-orm";
@@ -131,6 +133,8 @@ export default async function SystemsPage({
               </div>
               <div className="flex flex-wrap gap-2">
                 <AdoptButton system={today} adopted={isAdopted(today)} />
+                <ActionButton action={addTodoFromText} fields={{ text: today.tryToday }} label="Add to to-dos" doneLabel="On today's list" />
+                <ActionButton action={makeGoalFromSystem} fields={{ systemId: today.id }} label="Make it a goal" doneLabel="Goal created" />
                 <Link
                   href={journalHref(today)}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-700 px-3 py-1.5 text-xs text-neutral-300 hover:bg-neutral-800"
@@ -218,6 +222,8 @@ export default async function SystemsPage({
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <AdoptButton system={s} adopted={isAdopted(s)} />
+                  <ActionButton action={addTodoFromText} fields={{ text: s.tryToday }} label="Add to to-dos" doneLabel="On today's list" />
+                  <ActionButton action={makeGoalFromSystem} fields={{ systemId: s.id }} label="Make it a goal" doneLabel="Goal created" />
                   <Link
                     href={journalHref(s)}
                     className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-800 px-3 py-1.5 text-xs text-neutral-400 hover:bg-neutral-800"
