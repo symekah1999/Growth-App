@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.vercel.growth_app_ruddy_two.twa",
+      "sha256_cert_fingerprints": [
+        "C6:49:5B:50:E8:67:D1:DE:F0:9B:CC:D9:08:19:08:25:71:E2:78:C7:14:2E:13:03:C7:7E:07:85:97:E9:7B:2F"
+      ]
+    }
+  }
+]
