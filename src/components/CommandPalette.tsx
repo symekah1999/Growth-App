@@ -18,6 +18,7 @@ const ALIASES: Record<string, string> = {
   "/recovery": "addiction streak sober quit",
   "/export": "download backup csv json",
   "/reminders": "notifications push alerts",
+  "/challenge": "six month disappear ghost cheat sheet rules daily score vices",
   "/capture": "quick add offline jot",
   "/review": "weekly summary",
   "/trends": "charts graphs insights",

@@ -21,6 +21,7 @@ import {
   Search,
   TrendingUp,
   Zap,
+  Swords,
   type LucideIcon,
 } from "lucide-react";
 
@@ -30,6 +31,7 @@ const QUICK_LINKS: QuickLink[] = [
   { href: "/checkin", label: "Check-in", icon: ClipboardCheck, accent: "text-emerald-400" },
   { href: "/review", label: "Review", icon: CalendarCheck, accent: "text-sky-400" },
   { href: "/search", label: "Search", icon: Search, accent: "text-neutral-300" },
+  { href: "/challenge", label: "Challenge", icon: Swords, accent: "text-red-400" },
   { href: "/capture", label: "Capture", icon: Zap, accent: "text-yellow-300" },
   { href: "/trends", label: "Trends", icon: TrendingUp, accent: "text-cyan-300" },
   { href: "/progress", label: "Progress", icon: Trophy, accent: "text-yellow-300" },

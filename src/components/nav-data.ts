@@ -24,6 +24,7 @@ import {
   Archive,
   Bell,
   Zap,
+  Swords,
   type LucideIcon,
 } from "lucide-react";
 
@@ -50,6 +51,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { href: "/habits", label: "Habits", icon: Flame },
       { href: "/recovery", label: "Recovery", icon: HeartPulse },
       { href: "/systems", label: "Life Systems", icon: Compass },
+      { href: "/challenge", label: "6-Month Challenge", icon: Swords },
       { href: "/review", label: "Weekly review", icon: CalendarCheck },
       { href: "/progress", label: "Progress", icon: Trophy },
       { href: "/trends", label: "Trends", icon: TrendingUp },
