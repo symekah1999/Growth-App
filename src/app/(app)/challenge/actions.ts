@@ -9,9 +9,11 @@ import {
   challengeRuleChecks,
   challengeRuleWeeks,
   challengeScorecard,
+  challengeWild,
   challengeSetbacks,
   type Excuse,
 } from "@/db/schema-challenge";
+import { ANIMALS } from "@/db/seed-data/wild";
 import { DAILY_CHECKS, SCORECARD } from "@/db/seed-data/challenge";
 import { requireUser } from "@/lib/auth";
 import { DEFAULT_END, DEFAULT_START, nairobiToday, weekStartOf } from "@/lib/challenge";
@@ -188,4 +190,26 @@ export async function unmarkProverbsDay(fd: FormData) {
   await db.delete(challengeProverbs).where(and(eq(challengeProverbs.userId, user.id), eq(challengeProverbs.day, day)));
   refresh();
   back(str(fd, "from") === "today" ? "today" : "proverbs");
+}
+
+export async function saveWildDay(fd: FormData) {
+  const user = await requireUser();
+  const today = nairobiToday();
+  const rawDay = str(fd, "day");
+  const day = ISO.test(rawDay) && rawDay <= today ? rawDay : today;
+  const animal = ANIMALS.some((a) => a.key === str(fd, "animal")) ? str(fd, "animal") : ANIMALS[0].key;
+  const reflection = str(fd, "reflection", 500);
+  const values = { animal, reflection, updatedAt: new Date() };
+  await db.insert(challengeWild).values({ userId: user.id, day, ...values }).onConflictDoUpdate({ target: [challengeWild.userId, challengeWild.day], set: values });
+  refresh();
+  back(str(fd, "from") === "today" ? "today" : "wild", "&saved=1");
+}
+
+export async function unmarkWildDay(fd: FormData) {
+  const user = await requireUser();
+  const day = str(fd, "day");
+  if (!ISO.test(day)) return;
+  await db.delete(challengeWild).where(and(eq(challengeWild.userId, user.id), eq(challengeWild.day, day)));
+  refresh();
+  back("wild");
 }

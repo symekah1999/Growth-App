@@ -107,3 +107,16 @@ export const challengeProverbs = pgTable(
   },
   (t) => [primaryKey({ columns: [t.userId, t.day] })],
 );
+
+/** The apex animal studied each day, with a one-line "how I'll apply it". */
+export const challengeWild = pgTable(
+  "challenge_wild",
+  {
+    userId: uuid("user_id").notNull(),
+    day: date("day").notNull(),
+    animal: text("animal").notNull(),
+    reflection: text("reflection").notNull().default(""),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.day] })],
+);

@@ -3,6 +3,7 @@ import {
   challengeDays,
   challengePlan,
   challengeProverbs,
+  challengeWild,
   challengeReviews,
   challengeRuleChecks,
   challengeRuleWeeks,
@@ -20,6 +21,7 @@ export type SetbackRow = typeof challengeSetbacks.$inferSelect;
 export type ScoreRow = typeof challengeScorecard.$inferSelect;
 export type RuleWeekRow = { rule: number; weekStart: string; status: string };
 export type ProverbRow = { day: string; chapter: number; reflection: string };
+export type WildRow = { day: string; animal: string; reflection: string };
 
 /** Monday of the week containing the given date. */
 export function weekStartOf(day: string) {
@@ -65,6 +67,8 @@ export type ChallengeData = {
   /** Part 2 tables. Null if challenge-2.sql hasn't been run yet. */
   ruleWeeks: RuleWeekRow[] | null;
   proverbs: ProverbRow[] | null;
+  /** Part 3 table. Null if challenge-3.sql hasn't been run yet. */
+  wild: WildRow[] | null;
 };
 
 /** Loads everything for the owner. Returns null if the tables haven't been created yet. */
@@ -92,7 +96,14 @@ export async function loadChallenge(userId: string): Promise<ChallengeData | nul
       .orderBy(desc(challengeProverbs.day))
       .limit(400)
       .catch(() => null);
-    return { plan: plan ?? null, days, ruleChecks: ruleChecks.filter((r) => r.done), reviews, setbacks, scorecard, ruleWeeks, proverbs };
+    const wild = await db
+      .select({ day: challengeWild.day, animal: challengeWild.animal, reflection: challengeWild.reflection })
+      .from(challengeWild)
+      .where(eq(challengeWild.userId, userId))
+      .orderBy(desc(challengeWild.day))
+      .limit(400)
+      .catch(() => null);
+    return { plan: plan ?? null, days, ruleChecks: ruleChecks.filter((r) => r.done), reviews, setbacks, scorecard, ruleWeeks, proverbs, wild };
   } catch {
     return null;
   }
@@ -172,7 +183,7 @@ export function stats(days: DayRow[], today: string, start: string) {
 export const CHECK_KEYS = DAILY_CHECKS.map((c) => c.key);
 
 /** Day-by-day Proverbs reading streak ending today (or yesterday if today isn't logged yet). */
-export function proverbsStreak(rows: ProverbRow[], today: string) {
+export function proverbsStreak(rows: { day: string }[], today: string) {
   const set = new Set(rows.map((r) => r.day));
   let cur = set.has(today) ? today : addDaysISO(today, -1);
   let n = 0;
