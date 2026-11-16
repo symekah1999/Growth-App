@@ -12,6 +12,7 @@ import { ReviewTab } from "./ReviewTab";
 import { ScoreTab } from "./ScoreTab";
 import { GuideTab } from "./GuideTab";
 import { chapterForDay } from "@/db/seed-data/proverbs";
+import { PillarsTab } from "./PillarsTab";
 import { WildTab } from "./WildTab";
 import { KeepUpTab } from "./KeepUpTab";
 import { ProverbsTab } from "./ProverbsTab";
@@ -26,11 +27,12 @@ const TABS = [
   { key: "review", label: "Review" },
   { key: "scorecard", label: "Scorecard" },
   { key: "proverbs", label: "Proverbs" },
+  { key: "pillars", label: "10 Pillars" },
   { key: "wild", label: "Apex" },
   { key: "guide", label: "Guide" },
 ] as const;
 
-export default async function ChallengePage({ searchParams }: { searchParams: Promise<{ tab?: string; d?: string; w?: string; saved?: string }> }) {
+export default async function ChallengePage({ searchParams }: { searchParams: Promise<{ tab?: string; d?: string; w?: string; p?: string; saved?: string }> }) {
   const user = await requireUser();
   const sp = await searchParams;
   const tab = TABS.some((t) => t.key === sp.tab) ? sp.tab! : "today";
@@ -127,6 +129,18 @@ export default async function ChallengePage({ searchParams }: { searchParams: Pr
       {tab === "scorecard" && <ScoreTab rows={data.scorecard} st={st} saved={saved} start={plan.startDate} mid={mid} end={plan.endDate} />}
       {tab === "keepup" && (part2 ? <KeepUpTab rows={data.ruleWeeks!} days={data.days} week={week} thisWeek={thisWeek} start={plan.startDate} /> : setup2)}
       {tab === "proverbs" && (part2 ? <ProverbsTab rows={data.proverbs!} today={today} month={phase.month} started={phase.started && !phase.finished} saved={saved} /> : setup2)}
+      {tab === "pillars" && (
+        data.pillars ? (
+          <PillarsTab rows={data.pillars} today={today} pillar={sp.p} month={phase.month} started={phase.started && !phase.finished} saved={saved} />
+        ) : (
+          <Card className="border-amber-700/50">
+            <p className="text-sm font-semibold text-amber-200">One-time setup needed</p>
+            <p className="mt-1 text-sm text-neutral-300">
+              Run <code className="rounded bg-neutral-800 px-1">drizzle/manual/challenge-4.sql</code> in the Neon SQL editor, then refresh this page.
+            </p>
+          </Card>
+        )
+      )}
       {tab === "wild" && (
         data.wild ? (
           <WildTab rows={data.wild} today={today} month={phase.month} started={phase.started && !phase.finished} saved={saved} />

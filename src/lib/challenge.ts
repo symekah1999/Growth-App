@@ -3,6 +3,7 @@ import {
   challengeDays,
   challengePlan,
   challengeProverbs,
+  challengePillars,
   challengeWild,
   challengeReviews,
   challengeRuleChecks,
@@ -21,6 +22,7 @@ export type SetbackRow = typeof challengeSetbacks.$inferSelect;
 export type ScoreRow = typeof challengeScorecard.$inferSelect;
 export type RuleWeekRow = { rule: number; weekStart: string; status: string };
 export type ProverbRow = { day: string; chapter: number; reflection: string };
+export type PillarRow = { day: string; pillar: number };
 export type WildRow = { day: string; animal: string; reflection: string };
 
 /** Monday of the week containing the given date. */
@@ -69,6 +71,8 @@ export type ChallengeData = {
   proverbs: ProverbRow[] | null;
   /** Part 3 table. Null if challenge-3.sql hasn't been run yet. */
   wild: WildRow[] | null;
+  /** Part 4 table. Null if challenge-4.sql hasn't been run yet. */
+  pillars: PillarRow[] | null;
 };
 
 /** Loads everything for the owner. Returns null if the tables haven't been created yet. */
@@ -103,7 +107,14 @@ export async function loadChallenge(userId: string): Promise<ChallengeData | nul
       .orderBy(desc(challengeWild.day))
       .limit(400)
       .catch(() => null);
-    return { plan: plan ?? null, days, ruleChecks: ruleChecks.filter((r) => r.done), reviews, setbacks, scorecard, ruleWeeks, proverbs, wild };
+    const pillars = await db
+      .select({ day: challengePillars.day, pillar: challengePillars.pillar })
+      .from(challengePillars)
+      .where(eq(challengePillars.userId, userId))
+      .orderBy(desc(challengePillars.day))
+      .limit(1500)
+      .catch(() => null);
+    return { plan: plan ?? null, days, ruleChecks: ruleChecks.filter((r) => r.done), reviews, setbacks, scorecard, ruleWeeks, proverbs, wild, pillars };
   } catch {
     return null;
   }

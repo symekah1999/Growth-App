@@ -8,6 +8,7 @@ import {
   challengeReviews,
   challengeRuleChecks,
   challengeRuleWeeks,
+  challengePillars,
   challengeScorecard,
   challengeWild,
   challengeSetbacks,
@@ -212,4 +213,16 @@ export async function unmarkWildDay(fd: FormData) {
   await db.delete(challengeWild).where(and(eq(challengeWild.userId, user.id), eq(challengeWild.day, day)));
   refresh();
   back("wild");
+}
+
+export async function savePillarsDay(fd: FormData) {
+  const user = await requireUser();
+  const today = nairobiToday();
+  const rawDay = str(fd, "day");
+  const day = ISO.test(rawDay) && rawDay <= today ? rawDay : today;
+  const done = Array.from({ length: 10 }, (_, i) => i + 1).filter((n) => fd.get(`p${n}`) === "on");
+  await db.delete(challengePillars).where(and(eq(challengePillars.userId, user.id), eq(challengePillars.day, day)));
+  if (done.length) await db.insert(challengePillars).values(done.map((pillar) => ({ userId: user.id, day, pillar })));
+  refresh();
+  back("pillars", "&saved=1");
 }

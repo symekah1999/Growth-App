@@ -120,3 +120,15 @@ export const challengeWild = pgTable(
   },
   (t) => [primaryKey({ columns: [t.userId, t.day] })],
 );
+
+/** One row per pillar completed on a day (the ten pillars: athlete, Stoic, soldier ... God's wisdom). */
+export const challengePillars = pgTable(
+  "challenge_pillars",
+  {
+    userId: uuid("user_id").notNull(),
+    day: date("day").notNull(),
+    pillar: smallint("pillar").notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.day, t.pillar] })],
+);
