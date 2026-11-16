@@ -21,36 +21,27 @@ export function ScoreTab({ rows, st, saved, start, mid, end }: { rows: ScoreRow[
       </p>
       {saved && <p className="mb-3 rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300" role="status">Saved ✓</p>}
       <form action={saveScorecard}>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[40rem] text-sm">
-            <thead>
-              <tr className="text-left text-[11px] uppercase tracking-wide text-neutral-500">
-                <th className="pb-2 pr-3 font-medium">Measure</th>
-                <th className="pb-2 pr-2 font-medium">Baseline</th>
-                <th className="pb-2 pr-2 font-medium">Month 3</th>
-                <th className="pb-2 pr-2 font-medium">Month 6</th>
-                <th className="pb-2 font-medium">Now</th>
-              </tr>
-            </thead>
-            <tbody>
-              {SCORECARD.map((m) => {
-                const r = by.get(m.key);
-                return (
-                  <tr key={m.key} className="border-t border-neutral-800 align-middle">
-                    <td className="py-1.5 pr-3 text-neutral-300">{m.label}</td>
-                    {(["baseline", "month3", "month6"] as const).map((f) => (
-                      <td key={f} className="py-1.5 pr-2">
-                        <Input name={`${m.key}.${f}`} defaultValue={r?.[f] ?? ""} maxLength={200} className="!py-1" />
-                      </td>
-                    ))}
-                    <td className="py-1.5 text-neutral-400">{m.auto ? live[m.auto] : "–"}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="space-y-3">
+          {SCORECARD.map((m) => {
+            const r = by.get(m.key);
+            return (
+              <div key={m.key} className="rounded-lg border border-neutral-800 p-3">
+                <div className="flex items-baseline justify-between gap-2">
+                  <p className="text-sm font-medium text-neutral-100">{m.label}</p>
+                  {m.auto && <p className="text-xs text-neutral-400">Now: <span className="font-semibold text-neutral-100">{live[m.auto]}</span></p>}
+                </div>
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  {([["baseline", "Baseline"], ["month3", "Month 3"], ["month6", "Month 6"]] as const).map(([f, l]) => (
+                    <label key={f} className="text-[11px] text-neutral-500">{l}
+                      <Input name={`${m.key}.${f}`} defaultValue={r?.[f] ?? ""} maxLength={200} className="mt-0.5 !h-10" />
+                    </label>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
-        <Button type="submit" className="mt-4">Save scorecard</Button>
+        <Button type="submit" className="mt-4 h-11 w-full justify-center sm:w-auto">Save scorecard</Button>
       </form>
     </Card>
   );

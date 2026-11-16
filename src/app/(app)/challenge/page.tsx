@@ -3,7 +3,7 @@ import { requireUser } from "@/lib/auth";
 import { Card, PageHeader } from "@/components/ui";
 import { photoUrl } from "@/lib/images";
 import { addDaysISO } from "@/lib/utils";
-import { DEFAULT_END, DEFAULT_START, loadChallenge, nairobiToday, phaseInfo, stats } from "@/lib/challenge";
+import { DEFAULT_END, DEFAULT_START, loadChallenge, nairobiToday, phaseInfo, stats, weekStartOf } from "@/lib/challenge";
 import { loadProgressData, weeklyReview } from "@/lib/progress";
 import { TodayTab } from "./TodayTab";
 import { RulesTab } from "./RulesTab";
@@ -11,19 +11,24 @@ import { PlanTab } from "./PlanTab";
 import { ReviewTab } from "./ReviewTab";
 import { ScoreTab } from "./ScoreTab";
 import { GuideTab } from "./GuideTab";
+import { chapterForDay } from "@/db/seed-data/proverbs";
+import { KeepUpTab } from "./KeepUpTab";
+import { ProverbsTab } from "./ProverbsTab";
 
 export const dynamic = "force-dynamic";
 
 const TABS = [
   { key: "today", label: "Today" },
   { key: "rules", label: "15 rules" },
+  { key: "keepup", label: "Keep-up" },
   { key: "plan", label: "My terms" },
   { key: "review", label: "Review" },
   { key: "scorecard", label: "Scorecard" },
+  { key: "proverbs", label: "Proverbs" },
   { key: "guide", label: "Guide" },
 ] as const;
 
-export default async function ChallengePage({ searchParams }: { searchParams: Promise<{ tab?: string; d?: string; saved?: string }> }) {
+export default async function ChallengePage({ searchParams }: { searchParams: Promise<{ tab?: string; d?: string; w?: string; saved?: string }> }) {
   const user = await requireUser();
   const sp = await searchParams;
   const tab = TABS.some((t) => t.key === sp.tab) ? sp.tab! : "today";
@@ -76,6 +81,17 @@ export default async function ChallengePage({ searchParams }: { searchParams: Pr
     }
   }
 
+  const thisWeek = weekStartOf(today);
+  const week = sp.w && /^\d{4}-\d{2}-\d{2}$/.test(sp.w) && weekStartOf(sp.w) <= thisWeek ? weekStartOf(sp.w) : thisWeek;
+  const part2 = data.ruleWeeks !== null && data.proverbs !== null;
+  const setup2 = (
+    <Card className="border-amber-700/50">
+      <p className="text-sm font-semibold text-amber-200">One-time setup needed</p>
+      <p className="mt-1 text-sm text-neutral-300">
+        Run <code className="rounded bg-neutral-800 px-1">drizzle/manual/challenge-2.sql</code> in the Neon SQL editor, then refresh this page.
+      </p>
+    </Card>
+  );
   const mid = addDaysISO(plan.startDate, 91);
 
   return (
@@ -93,11 +109,22 @@ export default async function ChallengePage({ searchParams }: { searchParams: Pr
         ))}
       </div>
 
+      {tab === "today" && data.proverbs && (
+        <Link href="/challenge?tab=proverbs" className="mb-4 flex min-h-14 items-center justify-between gap-3 rounded-xl border border-amber-800/40 bg-amber-500/5 px-4 py-3 active:bg-amber-500/10">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-amber-300">Proverbs today</p>
+            <p className="text-sm text-neutral-100">Chapter {chapterForDay(today)}</p>
+          </div>
+          <span className="text-xs text-neutral-400">{data.proverbs.some((r) => r.day === today) ? "Read ✓" : "Tap to read"}</span>
+        </Link>
+      )}
       {tab === "today" && <TodayTab plan={plan} hasPlan={!!data.plan} days={data.days} day={day} today={today} phase={phase} st={st} saved={saved} other={other} />}
       {tab === "rules" && <RulesTab checks={data.ruleChecks} month={phase.month} started={phase.started && !phase.finished} />}
       {tab === "plan" && <PlanTab plan={data.plan} scorecard={data.scorecard} saved={saved} />}
       {tab === "review" && <ReviewTab reviews={data.reviews} setbacks={data.setbacks} st={st} today={today} saved={saved} />}
       {tab === "scorecard" && <ScoreTab rows={data.scorecard} st={st} saved={saved} start={plan.startDate} mid={mid} end={plan.endDate} />}
+      {tab === "keepup" && (part2 ? <KeepUpTab rows={data.ruleWeeks!} days={data.days} week={week} thisWeek={thisWeek} start={plan.startDate} /> : setup2)}
+      {tab === "proverbs" && (part2 ? <ProverbsTab rows={data.proverbs!} today={today} month={phase.month} started={phase.started && !phase.finished} saved={saved} /> : setup2)}
       {tab === "guide" && <GuideTab />}
     </div>
   );

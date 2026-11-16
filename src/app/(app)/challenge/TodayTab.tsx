@@ -116,8 +116,8 @@ export function TodayTab({ plan, hasPlan, days, day, today, phase, st, saved, ot
           <input type="hidden" name="day" value={day} />
           <div className="grid gap-1.5 sm:grid-cols-2">
             {DAILY_CHECKS.map((c) => (
-              <label key={c.key} className="flex cursor-pointer items-start gap-2.5 rounded-lg border border-neutral-800 px-3 py-2 text-sm text-neutral-200 hover:bg-neutral-800/50">
-                <input type="checkbox" name={c.key} defaultChecked={!!checks[c.key]} className="mt-0.5 h-4 w-4 accent-indigo-500" />
+              <label key={c.key} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-neutral-800 px-3 py-2 text-sm active:bg-neutral-800 text-neutral-200 hover:bg-neutral-800/50">
+                <input type="checkbox" name={c.key} defaultChecked={!!checks[c.key]} className="h-5 w-5 shrink-0 accent-indigo-500" />
                 <span className="flex-1">{c.label}</span>
                 <span className="text-[10px] text-neutral-600">R{c.rule}</span>
               </label>
@@ -140,7 +140,7 @@ export function TodayTab({ plan, hasPlan, days, day, today, phase, st, saved, ot
           <label className="block text-xs text-neutral-400">Note (optional)
             <Textarea name="note" rows={2} maxLength={1000} defaultValue={row?.note ?? ""} className="mt-1" />
           </label>
-          <Button type="submit">Save day</Button>
+          <Button type="submit" className="h-11 w-full justify-center sm:w-auto">Save day</Button>
         </form>
         <p className="mt-3 text-xs text-neutral-500">Aim for an average of 6. A run of 4s means the plan is too big: shrink it rather than quit.</p>
       </Card>

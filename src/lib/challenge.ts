@@ -2,8 +2,10 @@ import { db } from "@/db";
 import {
   challengeDays,
   challengePlan,
+  challengeProverbs,
   challengeReviews,
   challengeRuleChecks,
+  challengeRuleWeeks,
   challengeScorecard,
   challengeSetbacks,
 } from "@/db/schema-challenge";
@@ -16,6 +18,14 @@ export type DayRow = typeof challengeDays.$inferSelect;
 export type ReviewRow = typeof challengeReviews.$inferSelect;
 export type SetbackRow = typeof challengeSetbacks.$inferSelect;
 export type ScoreRow = typeof challengeScorecard.$inferSelect;
+export type RuleWeekRow = { rule: number; weekStart: string; status: string };
+export type ProverbRow = { day: string; chapter: number; reflection: string };
+
+/** Monday of the week containing the given date. */
+export function weekStartOf(day: string) {
+  const dow = new Date(day + "T00:00:00Z").getUTCDay(); // 0 = Sunday
+  return addDaysISO(day, -((dow + 6) % 7));
+}
 
 /** Nairobi is UTC+3 with no daylight saving; the challenge runs on your local day. */
 export const nairobiToday = () => new Date(Date.now() + 3 * 3600 * 1000).toISOString().slice(0, 10);
@@ -52,6 +62,9 @@ export type ChallengeData = {
   reviews: ReviewRow[];
   setbacks: SetbackRow[];
   scorecard: ScoreRow[];
+  /** Part 2 tables. Null if challenge-2.sql hasn't been run yet. */
+  ruleWeeks: RuleWeekRow[] | null;
+  proverbs: ProverbRow[] | null;
 };
 
 /** Loads everything for the owner. Returns null if the tables haven't been created yet. */
@@ -65,7 +78,21 @@ export async function loadChallenge(userId: string): Promise<ChallengeData | nul
       db.select().from(challengeSetbacks).where(eq(challengeSetbacks.userId, userId)).orderBy(desc(challengeSetbacks.day), desc(challengeSetbacks.createdAt)).limit(100),
       db.select().from(challengeScorecard).where(eq(challengeScorecard.userId, userId)),
     ]);
-    return { plan: plan ?? null, days, ruleChecks: ruleChecks.filter((r) => r.done), reviews, setbacks, scorecard };
+    const ruleWeeks = await db
+      .select({ rule: challengeRuleWeeks.rule, weekStart: challengeRuleWeeks.weekStart, status: challengeRuleWeeks.status })
+      .from(challengeRuleWeeks)
+      .where(eq(challengeRuleWeeks.userId, userId))
+      .orderBy(desc(challengeRuleWeeks.weekStart))
+      .limit(1000)
+      .catch(() => null);
+    const proverbs = await db
+      .select({ day: challengeProverbs.day, chapter: challengeProverbs.chapter, reflection: challengeProverbs.reflection })
+      .from(challengeProverbs)
+      .where(eq(challengeProverbs.userId, userId))
+      .orderBy(desc(challengeProverbs.day))
+      .limit(400)
+      .catch(() => null);
+    return { plan: plan ?? null, days, ruleChecks: ruleChecks.filter((r) => r.done), reviews, setbacks, scorecard, ruleWeeks, proverbs };
   } catch {
     return null;
   }
@@ -143,3 +170,46 @@ export function stats(days: DayRow[], today: string, start: string) {
 }
 
 export const CHECK_KEYS = DAILY_CHECKS.map((c) => c.key);
+
+/** Day-by-day Proverbs reading streak ending today (or yesterday if today isn't logged yet). */
+export function proverbsStreak(rows: ProverbRow[], today: string) {
+  const set = new Set(rows.map((r) => r.day));
+  let cur = set.has(today) ? today : addDaysISO(today, -1);
+  let n = 0;
+  while (set.has(cur)) {
+    n++;
+    cur = addDaysISO(cur, -1);
+  }
+  return n;
+}
+
+/** Which daily check each rule can be auto-measured from, for the weekly keep-up hints. */
+export const RULE_AUTO: Record<number, { key: string; label: string }> = {
+  1: { key: "social", label: "days under 30 min social" },
+  2: { key: "logged", label: "days logged" },
+  6: { key: "deep", label: "days with deep work" },
+  7: { key: "trained", label: "days trained or walked" },
+  8: { key: "wake", label: "days up on time" },
+  9: { key: "ate", label: "days ate to plan" },
+  10: { key: "clean", label: "days clean" },
+};
+
+export function ruleWeekHints(days: DayRow[], weekStart: string): Record<number, string> {
+  const end = addDaysISO(weekStart, 6);
+  const wk = days.filter((d) => d.day >= weekStart && d.day <= end);
+  const out: Record<number, string> = {};
+  for (const [rule, a] of Object.entries(RULE_AUTO)) {
+    const n = wk.filter((d) => d.checks?.[a.key]).length;
+    out[Number(rule)] = `${n}/7 ${a.label}`;
+  }
+  return out;
+}
+
+/** Share of rules kept for a week: kept = 1, partly = 0.5, missed or unrated = 0. */
+export function weekKeepUp(rows: RuleWeekRow[], weekStart: string) {
+  const wk = rows.filter((r) => r.weekStart === weekStart);
+  const kept = wk.filter((r) => r.status === "kept").length;
+  const partly = wk.filter((r) => r.status === "partly").length;
+  const missed = wk.filter((r) => r.status === "missed").length;
+  return { kept, partly, missed, rated: wk.length, pct: Math.round(((kept + partly * 0.5) / 15) * 100) };
+}

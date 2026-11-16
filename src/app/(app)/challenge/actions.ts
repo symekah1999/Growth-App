@@ -4,15 +4,17 @@ import { db } from "@/db";
 import {
   challengeDays,
   challengePlan,
+  challengeProverbs,
   challengeReviews,
   challengeRuleChecks,
+  challengeRuleWeeks,
   challengeScorecard,
   challengeSetbacks,
   type Excuse,
 } from "@/db/schema-challenge";
 import { DAILY_CHECKS, SCORECARD } from "@/db/seed-data/challenge";
 import { requireUser } from "@/lib/auth";
-import { DEFAULT_END, DEFAULT_START, nairobiToday } from "@/lib/challenge";
+import { DEFAULT_END, DEFAULT_START, nairobiToday, weekStartOf } from "@/lib/challenge";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -139,4 +141,51 @@ export async function saveScorecard(fd: FormData) {
   }
   refresh();
   back("scorecard", "&saved=1");
+}
+
+/** Tap a status to set it; tap the same one again to clear it. */
+export async function setRuleWeek(fd: FormData) {
+  const user = await requireUser();
+  const rule = Number(fd.get("rule"));
+  const week = str(fd, "week");
+  const status = str(fd, "status");
+  if (!(rule >= 1 && rule <= 15) || !ISO.test(week) || !["kept", "partly", "missed"].includes(status)) return;
+  const weekStart = weekStartOf(week);
+  const [cur] = await db
+    .select()
+    .from(challengeRuleWeeks)
+    .where(and(eq(challengeRuleWeeks.userId, user.id), eq(challengeRuleWeeks.rule, rule), eq(challengeRuleWeeks.weekStart, weekStart)));
+  if (cur?.status === status) {
+    await db.delete(challengeRuleWeeks).where(and(eq(challengeRuleWeeks.userId, user.id), eq(challengeRuleWeeks.rule, rule), eq(challengeRuleWeeks.weekStart, weekStart)));
+  } else {
+    await db
+      .insert(challengeRuleWeeks)
+      .values({ userId: user.id, rule, weekStart, status })
+      .onConflictDoUpdate({ target: [challengeRuleWeeks.userId, challengeRuleWeeks.rule, challengeRuleWeeks.weekStart], set: { status, updatedAt: new Date() } });
+  }
+  refresh();
+  back("keepup", `&w=${weekStart}#r${rule}`);
+}
+
+export async function saveProverbsDay(fd: FormData) {
+  const user = await requireUser();
+  const today = nairobiToday();
+  const rawDay = str(fd, "day");
+  const day = ISO.test(rawDay) && rawDay <= today ? rawDay : today;
+  const chapter = Math.min(31, Math.max(1, Number(fd.get("chapter")) || 1));
+  const reflection = str(fd, "reflection", 500);
+  const values = { chapter, reflection, updatedAt: new Date() };
+  await db.insert(challengeProverbs).values({ userId: user.id, day, ...values }).onConflictDoUpdate({ target: [challengeProverbs.userId, challengeProverbs.day], set: values });
+  refresh();
+  const to = str(fd, "from") === "today" ? "today" : "proverbs";
+  back(to, "&saved=1");
+}
+
+export async function unmarkProverbsDay(fd: FormData) {
+  const user = await requireUser();
+  const day = str(fd, "day");
+  if (!ISO.test(day)) return;
+  await db.delete(challengeProverbs).where(and(eq(challengeProverbs.userId, user.id), eq(challengeProverbs.day, day)));
+  refresh();
+  back(str(fd, "from") === "today" ? "today" : "proverbs");
 }

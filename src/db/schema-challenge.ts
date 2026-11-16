@@ -81,3 +81,29 @@ export const challengeScorecard = pgTable(
   },
   (t) => [primaryKey({ columns: [t.userId, t.measure] })],
 );
+
+/** Weekly keep-up rating for each of the 15 rules (week_start is the Monday). */
+export const challengeRuleWeeks = pgTable(
+  "challenge_rule_weeks",
+  {
+    userId: uuid("user_id").notNull(),
+    rule: smallint("rule").notNull(),
+    weekStart: date("week_start").notNull(),
+    status: text("status").notNull(), // kept | partly | missed
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.rule, t.weekStart] })],
+);
+
+/** The Proverbs chapter read each day, with a one-line "how I'll apply it". */
+export const challengeProverbs = pgTable(
+  "challenge_proverbs",
+  {
+    userId: uuid("user_id").notNull(),
+    day: date("day").notNull(),
+    chapter: smallint("chapter").notNull(),
+    reflection: text("reflection").notNull().default(""),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.day] })],
+);
