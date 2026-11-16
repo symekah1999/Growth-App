@@ -25,6 +25,7 @@ import {
   Bell,
   Zap,
   Swords,
+  Sunrise,
   type LucideIcon,
 } from "lucide-react";
 
@@ -37,6 +38,7 @@ export const NAV_SECTIONS: NavSection[] = [
     label: "Today",
     links: [
       { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/challenge/ritual", label: "Daily ritual", icon: Sunrise },
       { href: "/checkin", label: "Daily check-in", icon: ClipboardCheck },
       { href: "/capture", label: "Quick capture", icon: Zap },
       { href: "/search", label: "Search", icon: Search },

@@ -9,6 +9,7 @@ import {
   challengeRuleChecks,
   challengeRuleWeeks,
   challengePillars,
+  challengeRituals,
   challengeScorecard,
   challengeWild,
   challengeSetbacks,
@@ -225,4 +226,65 @@ export async function savePillarsDay(fd: FormData) {
   if (done.length) await db.insert(challengePillars).values(done.map((pillar) => ({ userId: user.id, day, pillar })));
   refresh();
   back("pillars", "&saved=1");
+}
+
+const ans = (fd: FormData, keys: string[], max = 500) => {
+  const out: Record<string, string> = {};
+  for (const k of keys) {
+    const v = str(fd, k, max);
+    if (v) out[k] = v;
+  }
+  return out;
+};
+
+export async function completeMorning(fd: FormData) {
+  const user = await requireUser();
+  const day = nairobiToday();
+  const answers = ans(fd, ["prayer", "reflection", "risk", "response", "task1", "task2", "task3"]);
+  await db
+    .insert(challengeRituals)
+    .values({ userId: user.id, day, kind: "morning", answers })
+    .onConflictDoUpdate({ target: [challengeRituals.userId, challengeRituals.day, challengeRituals.kind], set: { answers, completedAt: new Date() } });
+  // Reading Proverbs in the ritual counts as today's Proverbs log
+  const chapter = Math.min(31, Math.max(1, Number(fd.get("chapter")) || 1));
+  const values = { chapter, reflection: answers.reflection ?? "", updatedAt: new Date() };
+  await db.insert(challengeProverbs).values({ userId: user.id, day, ...values }).onConflictDoUpdate({ target: [challengeProverbs.userId, challengeProverbs.day], set: values }).catch(() => null);
+  refresh();
+  redirect("/challenge?tab=today&ritual=morning");
+}
+
+export async function completeEvening(fd: FormData) {
+  const user = await requireUser();
+  const day = nairobiToday();
+  const answers = ans(fd, ["aarPlan", "aarReality", "aarFix", "stoicWell", "stoicBad", "stoicLeft", "g1", "g2", "g3"]);
+  // 1. the 7-point daily scorecard
+  const tomorrowTask = str(fd, "tomorrowTask", 300);
+  const checks: Record<string, boolean> = {};
+  for (const c of DAILY_CHECKS) checks[c.key] = fd.get(c.key) === "on";
+  if (tomorrowTask && !checks.logged) checks.logged = true;
+  const score = Object.values(checks).filter(Boolean).length;
+  const sleep = str(fd, "sleepHours");
+  const sleepNum = sleep !== "" && Number.isFinite(Number(sleep)) ? Math.min(24, Math.max(0, Number(sleep))).toFixed(1) : null;
+  const dayValues = {
+    checks,
+    score,
+    socialMinutes: intOrNull(str(fd, "socialMinutes")),
+    sleepHours: sleepNum,
+    deepBlocks: intOrNull(str(fd, "deepBlocks")),
+    tomorrowTask: tomorrowTask || null,
+    note: answers.aarFix ?? null,
+    updatedAt: new Date(),
+  };
+  await db.insert(challengeDays).values({ userId: user.id, day, ...dayValues }).onConflictDoUpdate({ target: [challengeDays.userId, challengeDays.day], set: dayValues });
+  // 2. the ten pillars
+  const done = Array.from({ length: 10 }, (_, i) => i + 1).filter((n) => fd.get(`p${n}`) === "on");
+  await db.delete(challengePillars).where(and(eq(challengePillars.userId, user.id), eq(challengePillars.day, day))).catch(() => null);
+  if (done.length) await db.insert(challengePillars).values(done.map((pillar) => ({ userId: user.id, day, pillar }))).catch(() => null);
+  // 3. the ritual itself
+  await db
+    .insert(challengeRituals)
+    .values({ userId: user.id, day, kind: "evening", answers })
+    .onConflictDoUpdate({ target: [challengeRituals.userId, challengeRituals.day, challengeRituals.kind], set: { answers, completedAt: new Date() } });
+  refresh();
+  redirect("/challenge?tab=today&ritual=evening");
 }

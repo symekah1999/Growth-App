@@ -132,3 +132,16 @@ export const challengePillars = pgTable(
   },
   (t) => [primaryKey({ columns: [t.userId, t.day, t.pillar] })],
 );
+
+/** Morning / evening ritual completions with the answers written during the flow. */
+export const challengeRituals = pgTable(
+  "challenge_rituals",
+  {
+    userId: uuid("user_id").notNull(),
+    day: date("day").notNull(),
+    kind: text("kind").notNull(), // "morning" | "evening"
+    answers: jsonb("answers").$type<Record<string, string>>().notNull().default({}),
+    completedAt: timestamp("completed_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.day, t.kind] })],
+);

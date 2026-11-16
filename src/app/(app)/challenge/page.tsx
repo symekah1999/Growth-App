@@ -3,7 +3,7 @@ import { requireUser } from "@/lib/auth";
 import { Card, PageHeader } from "@/components/ui";
 import { photoUrl } from "@/lib/images";
 import { addDaysISO } from "@/lib/utils";
-import { DEFAULT_END, DEFAULT_START, loadChallenge, nairobiToday, phaseInfo, stats, weekStartOf } from "@/lib/challenge";
+import { DEFAULT_END, DEFAULT_START, loadChallenge, nairobiToday, phaseInfo, ritualStreak, stats, weekStartOf } from "@/lib/challenge";
 import { loadProgressData, weeklyReview } from "@/lib/progress";
 import { TodayTab } from "./TodayTab";
 import { RulesTab } from "./RulesTab";
@@ -32,7 +32,7 @@ const TABS = [
   { key: "guide", label: "Guide" },
 ] as const;
 
-export default async function ChallengePage({ searchParams }: { searchParams: Promise<{ tab?: string; d?: string; w?: string; p?: string; saved?: string }> }) {
+export default async function ChallengePage({ searchParams }: { searchParams: Promise<{ tab?: string; d?: string; w?: string; p?: string; ritual?: string; saved?: string }> }) {
   const user = await requireUser();
   const sp = await searchParams;
   const tab = TABS.some((t) => t.key === sp.tab) ? sp.tab! : "today";
@@ -113,6 +113,26 @@ export default async function ChallengePage({ searchParams }: { searchParams: Pr
         ))}
       </div>
 
+      {tab === "today" && data.rituals && (() => {
+        const m = data.rituals.some((r) => r.day === today && r.kind === "morning");
+        const e = data.rituals.some((r) => r.day === today && r.kind === "evening");
+        const streak = ritualStreak(data.rituals, today);
+        return (
+          <div className="mb-4">
+            {sp.ritual && <p className="mb-2 rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300" role="status">{sp.ritual === "morning" ? "Morning ritual complete. Go and win the day." : "Evening ritual complete. Rest well."}{streak > 0 ? ` ${streak}-day ritual streak.` : ""}</p>}
+            <div className="grid grid-cols-2 gap-2">
+              <Link href="/challenge/ritual?mode=morning" className={`rounded-xl border px-4 py-3 active:opacity-80 ${m ? "border-emerald-800/60 bg-emerald-500/5" : "border-amber-700/50 bg-amber-500/10"}`}>
+                <p className="text-xs font-semibold uppercase tracking-wide text-amber-300">Morning ritual</p>
+                <p className="mt-0.5 text-sm text-neutral-100">{m ? "Done ✓" : "Start (5 min)"}</p>
+              </Link>
+              <Link href="/challenge/ritual?mode=evening" className={`rounded-xl border px-4 py-3 active:opacity-80 ${e ? "border-emerald-800/60 bg-emerald-500/5" : "border-indigo-700/50 bg-indigo-500/10"}`}>
+                <p className="text-xs font-semibold uppercase tracking-wide text-indigo-300">Evening ritual</p>
+                <p className="mt-0.5 text-sm text-neutral-100">{e ? "Done ✓" : "Start (5 min)"}</p>
+              </Link>
+            </div>
+          </div>
+        );
+      })()}
       {tab === "today" && data.proverbs && (
         <Link href="/challenge?tab=proverbs" className="mb-4 flex min-h-14 items-center justify-between gap-3 rounded-xl border border-amber-800/40 bg-amber-500/5 px-4 py-3 active:bg-amber-500/10">
           <div>

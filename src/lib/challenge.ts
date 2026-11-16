@@ -4,6 +4,7 @@ import {
   challengePlan,
   challengeProverbs,
   challengePillars,
+  challengeRituals,
   challengeWild,
   challengeReviews,
   challengeRuleChecks,
@@ -22,6 +23,7 @@ export type SetbackRow = typeof challengeSetbacks.$inferSelect;
 export type ScoreRow = typeof challengeScorecard.$inferSelect;
 export type RuleWeekRow = { rule: number; weekStart: string; status: string };
 export type ProverbRow = { day: string; chapter: number; reflection: string };
+export type RitualRow = { day: string; kind: string; answers: Record<string, string> };
 export type PillarRow = { day: string; pillar: number };
 export type WildRow = { day: string; animal: string; reflection: string };
 
@@ -73,6 +75,8 @@ export type ChallengeData = {
   wild: WildRow[] | null;
   /** Part 4 table. Null if challenge-4.sql hasn't been run yet. */
   pillars: PillarRow[] | null;
+  /** Part 5 table. Null if challenge-5.sql hasn't been run yet. */
+  rituals: RitualRow[] | null;
 };
 
 /** Loads everything for the owner. Returns null if the tables haven't been created yet. */
@@ -114,7 +118,14 @@ export async function loadChallenge(userId: string): Promise<ChallengeData | nul
       .orderBy(desc(challengePillars.day))
       .limit(1500)
       .catch(() => null);
-    return { plan: plan ?? null, days, ruleChecks: ruleChecks.filter((r) => r.done), reviews, setbacks, scorecard, ruleWeeks, proverbs, wild, pillars };
+    const rituals = await db
+      .select({ day: challengeRituals.day, kind: challengeRituals.kind, answers: challengeRituals.answers })
+      .from(challengeRituals)
+      .where(eq(challengeRituals.userId, userId))
+      .orderBy(desc(challengeRituals.day))
+      .limit(800)
+      .catch(() => null);
+    return { plan: plan ?? null, days, ruleChecks: ruleChecks.filter((r) => r.done), reviews, setbacks, scorecard, ruleWeeks, proverbs, wild, pillars, rituals };
   } catch {
     return null;
   }
@@ -234,4 +245,23 @@ export function weekKeepUp(rows: RuleWeekRow[], weekStart: string) {
   const partly = wk.filter((r) => r.status === "partly").length;
   const missed = wk.filter((r) => r.status === "missed").length;
   return { kept, partly, missed, rated: wk.length, pct: Math.round(((kept + partly * 0.5) / 15) * 100) };
+}
+
+/** Days on which both rituals were completed, counted back from today (or yesterday if today isn't finished). */
+export function ritualStreak(rows: { day: string; kind: string }[], today: string) {
+  const m = new Set(rows.filter((r) => r.kind === "morning").map((r) => r.day));
+  const e = new Set(rows.filter((r) => r.kind === "evening").map((r) => r.day));
+  const both = (d: string) => m.has(d) && e.has(d);
+  let cur = both(today) ? today : addDaysISO(today, -1);
+  let n = 0;
+  while (both(cur)) {
+    n++;
+    cur = addDaysISO(cur, -1);
+  }
+  return n;
+}
+
+/** Hour (0-23) in Nairobi, used to pick morning vs evening by default. */
+export function nairobiHour() {
+  return Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Nairobi", hour: "2-digit", hour12: false }).format(new Date())) % 24;
 }
