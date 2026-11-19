@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BookOpen, Check } from "lucide-react";
 import { Button, Card, Textarea } from "@/components/ui";
+import { dailyProverb } from "@/db/seed-data/proverbs-daily";
 import { MOMENTS, PROVERBS_BOOK_ID, PROVERBS_PATHS, VERSES, chapterForDay, refLabel } from "@/db/seed-data/proverbs";
 import { RULES } from "@/db/seed-data/challenge";
 import { addDaysISO, formatDate } from "@/lib/utils";
@@ -9,6 +10,7 @@ import { saveProverbsDay, unmarkProverbsDay } from "./actions";
 
 export function ProverbsTab({ rows, today, month, started, saved }: { rows: ProverbRow[]; today: string; month: number; started: boolean; saved: boolean }) {
   const chapter = chapterForDay(today);
+  const vp = dailyProverb(today);
   const todayRow = rows.find((r) => r.day === today);
   const streak = proverbsStreak(rows, today);
   const last7 = Array.from({ length: 7 }, (_, i) => addDaysISO(today, -(6 - i)));
@@ -20,8 +22,14 @@ export function ProverbsTab({ rows, today, month, started, saved }: { rows: Prov
     <div className="space-y-4">
       <Card className="border-amber-800/40">
         <p className="text-xs font-semibold uppercase tracking-wide text-amber-300">Proverbs for today</p>
-        <p className="mt-0.5 text-lg font-semibold text-neutral-50">Proverbs {chapter}</p>
-        <p className="mt-1 text-xs text-neutral-400">Proverbs has 31 chapters, one for each day of the month. Read today&apos;s, then write one line on how you will apply it.</p>
+        <p className="mt-0.5 text-lg font-semibold text-neutral-50">Proverbs {vp.chapter}:{vp.verse}</p>
+        <blockquote className="mt-2 border-l-2 border-amber-600/60 pl-3">
+          <p className="text-sm italic leading-relaxed text-neutral-100">&ldquo;{vp.text}&rdquo;</p>
+        </blockquote>
+        <p className="mt-3 text-sm leading-relaxed text-neutral-300">{vp.teaches}</p>
+        <ul className="mt-2 space-y-1.5 text-sm text-neutral-300">{vp.lessons.map((l) => <li key={l} className="flex gap-2"><span className="text-emerald-400">•</span>{l}</li>)}</ul>
+        <p className="mt-3 rounded-lg bg-neutral-950/60 px-3 py-2 text-sm text-neutral-200"><span className="font-semibold text-indigo-300">Try today: </span>{vp.tryToday}</p>
+        <p className="mt-3 text-xs text-neutral-500">One verse a day: day of the month = chapter. Read the whole chapter below when you can.</p>
         <Link href={`/bible/${PROVERBS_BOOK_ID}/${chapter}`} className="mt-3 inline-flex h-11 items-center gap-2 rounded-lg bg-amber-600/20 px-4 text-sm font-medium text-amber-100 hover:bg-amber-600/30">
           <BookOpen size={16} /> Read Proverbs {chapter}
         </Link>

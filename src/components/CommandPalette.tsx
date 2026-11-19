@@ -21,6 +21,7 @@ const ALIASES: Record<string, string> = {
   "/challenge/ritual": "morning evening routine ritual prayer review start the day close",
   "/challenge": "six month disappear ghost cheat sheet rules daily score vices proverbs wisdom keep up weekly rules apex animals lion eagle wolf longevity ten pillars athlete stoic soldier strategist farmer poet monk legend wisdom",
   "/capture": "quick add offline jot",
+  "/entries": "history timeline log everything all entries feed search",
   "/review": "weekly summary",
   "/trends": "charts graphs insights",
   "/quotes": "quote library",

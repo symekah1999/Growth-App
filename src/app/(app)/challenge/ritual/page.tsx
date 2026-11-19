@@ -1,14 +1,12 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { and, asc, eq } from "drizzle-orm";
-import { db } from "@/db";
-import { bibleVerses } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { Card, Input, Textarea } from "@/components/ui";
 import { DAILY_CHECKS, MONTHS } from "@/db/seed-data/challenge";
 import { PILLARS, pillarForDay } from "@/db/seed-data/pillars";
 import { animalForDay } from "@/db/seed-data/wild";
-import { PROVERBS_BOOK_ID, chapterForDay } from "@/db/seed-data/proverbs";
+import { PROVERBS_BOOK_ID } from "@/db/seed-data/proverbs";
+import { dailyProverb } from "@/db/seed-data/proverbs-daily";
 import { DEFAULT_END, DEFAULT_START, loadChallenge, nairobiHour, nairobiToday, phaseInfo, ritualStreak } from "@/lib/challenge";
 import { addDaysISO, formatDate } from "@/lib/utils";
 import { completeEvening, completeMorning } from "../actions";
@@ -75,17 +73,8 @@ export default async function RitualPage({ searchParams }: { searchParams: Promi
   if (mode === "morning") {
     action = completeMorning;
     finishLabel = "Start the day";
-    const chapter = chapterForDay(today);
-    let verses: { verse: number; text: string }[] = [];
-    try {
-      verses = await db
-        .select({ verse: bibleVerses.verse, text: bibleVerses.text })
-        .from(bibleVerses)
-        .where(and(eq(bibleVerses.bookId, PROVERBS_BOOK_ID), eq(bibleVerses.chapter, chapter)))
-        .orderBy(asc(bibleVerses.verse));
-    } catch {
-      verses = [];
-    }
+    const vp = dailyProverb(today);
+    const chapter = vp.chapter;
     const pillar = pillarForDay(today);
     const animal = animalForDay(today);
     const prefill = morning.task1 ?? todayRow?.tomorrowTask ?? yesterdayRow?.tomorrowTask ?? "";
@@ -132,21 +121,25 @@ export default async function RitualPage({ searchParams }: { searchParams: Promi
         ),
       },
       {
-        key: "proverbs", label: `Proverbs ${chapter}`,
+        key: "proverbs", label: `Proverbs ${vp.chapter}:${vp.verse}`,
         node: (
           <>
-            <Title kicker="Today's chapter">Proverbs {chapter}</Title>
+            <Title kicker="Today's verse">Proverbs {vp.chapter}:{vp.verse}</Title>
             <input type="hidden" name="chapter" value={chapter} />
-            {verses.length > 0 ? (
-              <div className="mb-4 max-h-[42vh] space-y-2 overflow-y-auto rounded-xl border border-neutral-800 p-4 leading-relaxed">
-                {verses.map((v) => (
-                  <p key={v.verse} className="text-neutral-200"><span className="mr-2 align-super text-xs text-neutral-500">{v.verse}</span>{v.text}</p>
-                ))}
-              </div>
-            ) : (
-              <P>Open the chapter in your Bible, read it slowly, then come back. <Link className="underline" href={`/bible/${PROVERBS_BOOK_ID}/${chapter}`}>Open Proverbs {chapter}</Link></P>
-            )}
+            <Verse text={vp.text} refLabel={`Proverbs ${vp.chapter}:${vp.verse}`} />
+            <div className="mb-3 rounded-xl border border-neutral-800 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-amber-300">What it teaches</p>
+              <p className="mt-1 text-sm leading-relaxed text-neutral-200">{vp.teaches}</p>
+            </div>
+            <div className="mb-3 rounded-xl border border-neutral-800 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-emerald-300">Lessons to take</p>
+              <ul className="mt-2 space-y-2 text-sm text-neutral-200">
+                {vp.lessons.map((l) => <li key={l} className="flex gap-2"><span className="text-emerald-400">•</span>{l}</li>)}
+              </ul>
+            </div>
+            <p className="mb-4 rounded-xl bg-neutral-900 px-4 py-3 text-sm text-neutral-200"><span className="font-semibold text-indigo-300">Try today: </span>{vp.tryToday}</p>
             <Field label="One line: how will I apply this today?"><Textarea name="reflection" rows={2} maxLength={500} defaultValue={morning.reflection ?? ""} /></Field>
+            <p className="text-xs text-neutral-500"><Link className="underline" href={`/bible/${PROVERBS_BOOK_ID}/${chapter}`}>Read all of Proverbs {chapter}</Link> when you have time.</p>
           </>
         ),
       },
