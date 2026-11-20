@@ -2,6 +2,7 @@ import { Trash2 } from "lucide-react";
 import { Button, Card, Input, Select, Textarea } from "@/components/ui";
 import { SUNDAY_STEPS } from "@/db/seed-data/challenge";
 import { formatDate } from "@/lib/utils";
+import { Folder, groupBy, monthLabel } from "@/components/Folders";
 import type { ReviewRow, SetbackRow, stats as statsFn } from "@/lib/challenge";
 import { addSetback, deleteSetback, saveReview } from "./actions";
 
@@ -61,20 +62,24 @@ export function ReviewTab({ reviews, setbacks, st, today, saved }: { reviews: Re
       </Card>
 
       {reviews.length > 0 && (
-        <Card>
-          <h2 className="mb-2 text-sm font-semibold text-neutral-100">Past reviews</h2>
-          <ul className="divide-y divide-neutral-800">
-            {reviews.map((r) => (
-              <li key={r.id} className="py-3 text-sm">
-                <p className="font-medium text-neutral-100">Week ending {formatDate(r.weekEnding)} <span className="ml-2 rounded-full bg-neutral-800 px-2 py-0.5 text-[11px] text-neutral-300">{PACE[r.pace] ?? r.pace}</span></p>
-                {r.worked && <p className="mt-1 text-neutral-300"><span className="text-neutral-500">Worked:</span> {r.worked}</p>}
-                {r.failed && <p className="mt-0.5 text-neutral-300"><span className="text-neutral-500">Failed:</span> {r.failed}</p>}
-                {r.change && <p className="mt-0.5 text-neutral-300"><span className="text-neutral-500">Change:</span> {r.change}</p>}
-                {r.nextPlan && <p className="mt-0.5 text-neutral-300"><span className="text-neutral-500">Next:</span> {r.nextPlan}</p>}
-              </li>
+        <section>
+          <h2 className="mb-2 text-sm font-semibold text-neutral-100">Past reviews <span className="ml-1 font-normal text-neutral-500">{reviews.length}</span></h2>
+          <div className="space-y-2.5">
+            {groupBy(reviews, (r) => r.weekEnding.slice(0, 7)).map(([k, items], i) => (
+              <Folder key={k} title={monthLabel(items[0].weekEnding)} count={items.length} latest={`Week ending ${formatDate(items[0].weekEnding)}`} open={i === 0} tint="bg-rose-500/15 text-rose-200">
+                {items.map((r) => (
+                  <div key={r.id} className="rounded-lg border border-neutral-800 bg-neutral-950/50 p-3 text-sm">
+                    <p className="font-medium text-neutral-100">Week ending {formatDate(r.weekEnding)} <span className="ml-2 rounded-full bg-neutral-800 px-2 py-0.5 text-[11px] text-neutral-300">{PACE[r.pace] ?? r.pace}</span></p>
+                    {r.worked && <p className="mt-1 text-neutral-300"><span className="text-neutral-500">Worked:</span> {r.worked}</p>}
+                    {r.failed && <p className="mt-0.5 text-neutral-300"><span className="text-neutral-500">Failed:</span> {r.failed}</p>}
+                    {r.change && <p className="mt-0.5 text-neutral-300"><span className="text-neutral-500">Change:</span> {r.change}</p>}
+                    {r.nextPlan && <p className="mt-0.5 text-neutral-300"><span className="text-neutral-500">Next:</span> {r.nextPlan}</p>}
+                  </div>
+                ))}
+              </Folder>
             ))}
-          </ul>
-        </Card>
+          </div>
+        </section>
       )}
 
       <Card className="scroll-mt-4" >
@@ -88,22 +93,26 @@ export function ReviewTab({ reviews, setbacks, st, today, saved }: { reviews: Re
           <Button type="submit" variant="ghost">Add to log</Button>
         </form>
         {setbacks.length > 0 && (
-          <ul className="mt-4 divide-y divide-neutral-800">
-            {setbacks.map((s) => (
-              <li key={s.id} className="flex items-start justify-between gap-3 py-2.5 text-sm">
-                <div className="min-w-0 text-neutral-300">
-                  <p className="text-xs text-neutral-500">{formatDate(s.day)}</p>
-                  <p>{s.what}</p>
-                  {s.control && <p className="text-neutral-400"><span className="text-neutral-500">In my control:</span> {s.control}</p>}
-                  {s.nextTime && <p className="text-neutral-400"><span className="text-neutral-500">Next time:</span> {s.nextTime}</p>}
-                </div>
-                <form action={deleteSetback}>
-                  <input type="hidden" name="id" value={s.id} />
-                  <button type="submit" aria-label="Delete" className="text-neutral-600 hover:text-red-400"><Trash2 size={14} /></button>
-                </form>
-              </li>
+          <div className="mt-4 space-y-2.5">
+            {groupBy(setbacks, (x) => x.day.slice(0, 7)).map(([k, items], i) => (
+              <Folder key={k} title={monthLabel(items[0].day)} count={items.length} latest={items[0].what} open={i === 0} tint="bg-neutral-800 text-neutral-300">
+                {items.map((x) => (
+                  <div key={x.id} className="flex items-start justify-between gap-3 rounded-lg border border-neutral-800 bg-neutral-950/50 p-3 text-sm">
+                    <div className="min-w-0 text-neutral-300">
+                      <p className="text-xs text-neutral-500">{formatDate(x.day)}</p>
+                      <p>{x.what}</p>
+                      {x.control && <p className="text-neutral-400"><span className="text-neutral-500">In my control:</span> {x.control}</p>}
+                      {x.nextTime && <p className="text-neutral-400"><span className="text-neutral-500">Next time:</span> {x.nextTime}</p>}
+                    </div>
+                    <form action={deleteSetback}>
+                      <input type="hidden" name="id" value={x.id} />
+                      <button type="submit" aria-label="Delete" className="flex h-8 w-8 items-center justify-center text-neutral-600 hover:text-red-400"><Trash2 size={14} /></button>
+                    </form>
+                  </div>
+                ))}
+              </Folder>
             ))}
-          </ul>
+          </div>
         )}
       </Card>
     </div>

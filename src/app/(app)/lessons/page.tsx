@@ -11,6 +11,7 @@ import { RESILIENCE_STORIES, STORY_FIELDS, getStoryOfTheDay, type ResilienceStor
 import { photoUrl, storyPhoto } from "@/lib/images";
 import { addLesson, deleteLesson, saveStoryLesson } from "./actions";
 import { ShowMore } from "@/components/ShowMore";
+import { Folder, ViewToggle, groupBy, monthLabel } from "@/components/Folders";
 import { BookmarkPlus, Flame, History, Lightbulb, Mountain, NotebookPen, Sparkles, Sunrise, Target } from "lucide-react";
 
 type Lesson = typeof lifeLessons.$inferSelect;
@@ -21,10 +22,6 @@ const fieldLabel = (key: string) => STORY_FIELDS.find((f) => f.key === key)?.lab
 function fmtDate(iso: string) {
   return new Date(iso + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
-function monthKey(iso: string) {
-  return new Date(iso + "T00:00:00").toLocaleDateString("en-GB", { month: "long", year: "numeric" });
-}
-
 function lessonStreak(dates: string[], today: string): number {
   const set = new Set(dates);
   let day = set.has(today) ? today : addDaysISO(today, -1);
@@ -66,10 +63,12 @@ function SaveStoryButton({ story, small }: { story: ResilienceStory; small?: boo
 export default async function LessonsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ cat?: string; field?: string }>;
+  searchParams: Promise<{ cat?: string; field?: string; view?: string; q?: string }>;
 }) {
   const user = await requireUser();
-  const { cat, field } = await searchParams;
+  const { cat, field, view: viewParam, q: qParam } = await searchParams;
+  const view = viewParam === "month" ? "month" : "topic";
+  const q = (qParam ?? "").trim().slice(0, 80);
   const today = todayISO();
   const story = getStoryOfTheDay(today);
 
@@ -85,7 +84,10 @@ export default async function LessonsPage({
     tableMissing = true;
   }
 
-  const visible = cat ? rows.filter((r) => r.category === cat) : rows;
+  const needle = q.toLowerCase();
+  const visible = rows.filter(
+    (r) => (!cat || r.category === cat) && (!needle || `${r.lesson} ${r.context ?? ""} ${r.source ?? ""}`.toLowerCase().includes(needle)),
+  );
   const streak = lessonStreak(rows.map((r) => r.learnedOn), today);
   const thisMonth = rows.filter((r) => r.learnedOn.slice(0, 7) === today.slice(0, 7)).length;
 
@@ -94,11 +96,28 @@ export default async function LessonsPage({
   const dayNum = Math.floor(new Date(today + "T00:00:00Z").getTime() / 86_400_000);
   const resurfaced = older.length ? older[dayNum % older.length] : null;
 
-  const groups = new Map<string, Lesson[]>();
-  for (const r of visible) {
-    const k = monthKey(r.learnedOn);
-    groups.set(k, [...(groups.get(k) ?? []), r]);
-  }
+  const lessonsHref = (o: { cat?: string | null; view?: string; q?: string | null }) => {
+    const p = new URLSearchParams();
+    const c = o.cat === undefined ? cat : o.cat;
+    const qq = o.q === undefined ? q : o.q;
+    if (c) p.set("cat", c);
+    if (field) p.set("field", field);
+    if (qq) p.set("q", qq);
+    p.set("view", o.view ?? view);
+    return `/lessons?${p.toString()}#mine`;
+  };
+  const folders: { key: string; title: string; items: Lesson[] }[] =
+    view === "topic"
+      ? LESSON_CATEGORIES.map((c): { key: string; title: string; items: Lesson[] } => ({ key: c.key, title: c.label, items: visible.filter((r) => r.category === c.key) }))
+          .concat(
+            // any category that is no longer in the list still gets its own folder
+            groupBy(
+              visible.filter((r) => !LESSON_CATEGORIES.some((c) => c.key === r.category)),
+              (r) => r.category,
+            ).map(([k, items]) => ({ key: k, title: catLabel(k), items })),
+          )
+          .filter((f) => f.items.length > 0)
+      : groupBy(visible, (r) => r.learnedOn.slice(0, 7)).map(([k, items]) => ({ key: k, title: monthLabel(items[0].learnedOn), items }));
 
   const library = field ? RESILIENCE_STORIES.filter((s) => s.field === field) : RESILIENCE_STORIES;
 
@@ -188,7 +207,7 @@ export default async function LessonsPage({
 
       <div className="mb-10 grid gap-6 lg:grid-cols-[1fr_1.25fr]">
         {/* Log a lesson */}
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <Card>
             <h2 className="mb-1 flex items-center gap-2 font-semibold text-neutral-100">
               <Sparkles size={16} className="text-amber-300" /> Log today&apos;s lesson
@@ -236,70 +255,65 @@ export default async function LessonsPage({
         </div>
 
         {/* My lessons */}
-        <div>
+        <div id="mine" className="min-w-0 scroll-mt-20">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="font-semibold text-neutral-100">My lessons</h2>
-            <div className="flex flex-wrap gap-1.5">
-              <Link
-                href={field ? `/lessons?field=${field}` : "/lessons"}
-                className={`rounded-full border px-2.5 py-0.5 text-xs ${
-                  !cat ? "border-amber-500 bg-amber-500/15 text-amber-200" : "border-neutral-800 text-neutral-400 hover:bg-neutral-800/60"
-                }`}
-              >
-                All
-              </Link>
+            <h2 className="font-semibold text-neutral-100">My lessons <span className="ml-1 text-sm font-normal text-neutral-500">{visible.length}</span></h2>
+            <ViewToggle path="/lessons" params={{ cat, field, q: q || undefined }} current={view} options={[{ key: "topic", label: "By topic" }, { key: "month", label: "By month" }]} accent="bg-amber-500/20 text-amber-100" hash="mine" />
+          </div>
+          <form action="/lessons" className="mb-3 flex gap-2">
+            <input type="hidden" name="view" value={view} />
+            {cat && <input type="hidden" name="cat" value={cat} />}
+            {field && <input type="hidden" name="field" value={field} />}
+            <input name="q" defaultValue={q} placeholder="Search my lessons" className="h-10 min-w-0 flex-1 rounded-lg border border-neutral-800 bg-neutral-900 px-3 text-sm text-neutral-100 placeholder:text-neutral-600 focus:border-amber-500 focus:outline-none" />
+            <button type="submit" className="h-10 rounded-lg bg-neutral-100 px-4 text-sm font-semibold text-neutral-900 active:bg-neutral-300">Search</button>
+          </form>
+          {view === "topic" && (
+            <div className="mb-3 flex flex-wrap gap-1.5">
+              <Link href={lessonsHref({ cat: null })} className={`rounded-full border px-2.5 py-0.5 text-xs ${!cat ? "border-amber-500 bg-amber-500/15 text-amber-200" : "border-neutral-800 text-neutral-400 hover:bg-neutral-800/60"}`}>All</Link>
               {LESSON_CATEGORIES.filter((c) => rows.some((r) => r.category === c.key)).map((c) => (
-                <Link
-                  key={c.key}
-                  href={`/lessons?cat=${c.key}${field ? `&field=${field}` : ""}`}
-                  className={`rounded-full border px-2.5 py-0.5 text-xs ${
-                    cat === c.key
-                      ? "border-amber-500 bg-amber-500/15 text-amber-200"
-                      : "border-neutral-800 text-neutral-400 hover:bg-neutral-800/60"
-                  }`}
-                >
-                  {c.label}
+                <Link key={c.key} href={lessonsHref({ cat: c.key })} className={`rounded-full border px-2.5 py-0.5 text-xs ${cat === c.key ? "border-amber-500 bg-amber-500/15 text-amber-200" : "border-neutral-800 text-neutral-400 hover:bg-neutral-800/60"}`}>
+                  {c.label} <span className="text-neutral-600">{rows.filter((r) => r.category === c.key).length}</span>
                 </Link>
               ))}
             </div>
-          </div>
+          )}
 
-          {visible.length === 0 ? (
+          {folders.length === 0 ? (
             <Card className="text-center">
-              <p className="text-sm text-neutral-300">No lessons logged yet.</p>
+              <p className="text-sm text-neutral-300">{q || cat ? "No lessons match." : "No lessons logged yet."}</p>
               <p className="mt-1 text-xs text-neutral-500">
-                Start with today&apos;s — or save the lesson from the great life of the day above.
+                {q || cat ? "Try another topic or search." : "Start with today\u2019s, or save the lesson from the great life of the day above."}
               </p>
             </Card>
           ) : (
-            <div className="space-y-6">
-              {[...groups.entries()].map(([month, items]) => (
-                <div key={month}>
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                    {month} · {items.length}
-                  </p>
-                  <div className="space-y-2.5">
-                    {items.map((r) => (
-                      <Card key={r.id} className="p-4">
+            <div className="space-y-2.5">
+              {folders.map((f, i) => (
+                <Folder key={`${view}-${f.key}`} id={`f-${f.key}`} title={f.title} count={f.items.length} latest={`Latest: ${f.items[0].lesson}`} open={cat ? true : i === 0} tint="bg-amber-500/15 text-amber-200">
+                  <ShowMore key={`${view}-${f.key}-${cat ?? ""}-${q}`} initial={6} label="More lessons" className="space-y-2">
+                    {f.items.map((r) => (
+                      <div key={r.id} className="rounded-lg border border-neutral-800 bg-neutral-950/50 p-3">
                         <div className="flex items-start justify-between gap-3">
-                          <p className="font-medium leading-snug text-neutral-100">{r.lesson}</p>
+                          <p className="text-sm font-medium leading-snug text-neutral-100">{r.lesson}</p>
                           <form action={deleteLesson}>
                             <input type="hidden" name="id" value={r.id} />
-                            <button type="submit" className="text-xs text-neutral-600 hover:text-red-400" aria-label="Delete lesson">
-                              delete
-                            </button>
+                            <button type="submit" className="h-8 px-1 text-xs text-neutral-600 hover:text-red-400" aria-label="Delete lesson">delete</button>
                           </form>
                         </div>
-                        {r.context && <p className="mt-1.5 text-sm leading-relaxed text-neutral-400">{r.context}</p>}
-                        <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs text-neutral-500">
+                        {r.context && (
+                          <details className="mt-1.5">
+                            <summary className="cursor-pointer select-none text-xs text-amber-300">The story behind it</summary>
+                            <p className="mt-1 text-sm leading-relaxed text-neutral-400">{r.context}</p>
+                          </details>
+                        )}
+                        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-neutral-500">
                           <Link href={`/day?d=${r.learnedOn}`} className="hover:text-neutral-200 hover:underline">{fmtDate(r.learnedOn)}</Link>
-                          <Badge>{catLabel(r.category)}</Badge>
+                          {view === "month" && <Badge>{catLabel(r.category)}</Badge>}
                           {r.source && <span className="italic">— {r.source}</span>}
                         </div>
-                      </Card>
+                      </div>
                     ))}
-                  </div>
-                </div>
+                  </ShowMore>
+                </Folder>
               ))}
             </div>
           )}

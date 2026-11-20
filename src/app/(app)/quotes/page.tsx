@@ -11,6 +11,7 @@ import { QUOTE_CATEGORIES, QUOTE_LIBRARY, categoryLabel } from "@/db/seed-data/q
 import { Bookmark, BookmarkCheck, Search } from "lucide-react";
 import Link from "next/link";
 import { ShowMore } from "@/components/ShowMore";
+import { Folder, groupBy } from "@/components/Folders";
 import { photoUrl } from "@/lib/images";
 
 type Params = { tab?: string; cat?: string; q?: string };
@@ -192,9 +193,10 @@ export default async function QuotesPage({ searchParams }: { searchParams: Promi
               subtitle={rows.length === 0 ? "Save quotes from the Library, or add your own above." : "Try a different theme or search."}
             />
           ) : (
-            <ShowMore key={`mine-${cat ?? ""}-${q ?? ""}`} initial={24} label="More quotes" className="columns-1 gap-3 sm:columns-2 lg:columns-3 xl:columns-4">
-              {mineResults.map((x) => (
-                <Card key={x.id} className="mb-3 break-inside-avoid">
+            cat || needle ? (
+              <ShowMore key={`mine-${cat ?? ""}-${q ?? ""}`} initial={24} label="More quotes" className="columns-1 gap-3 sm:columns-2 lg:columns-3 xl:columns-4">
+                {mineResults.map((x) => (
+                  <Card key={x.id} className="mb-3 break-inside-avoid">
                   <p className="text-[15px] leading-relaxed text-neutral-100">&ldquo;{x.text}&rdquo;</p>
                   <div className="mt-3 flex items-center justify-between gap-2">
                     <div className="flex min-w-0 items-center gap-2 text-xs text-neutral-400">
@@ -210,8 +212,36 @@ export default async function QuotesPage({ searchParams }: { searchParams: Promi
                     </form>
                   </div>
                 </Card>
-              ))}
-            </ShowMore>
+                ))}
+              </ShowMore>
+            ) : (
+              <div className="space-y-2.5">
+                {groupBy(mineResults, (x) => x.category ?? "none").map(([k, items], i) => (
+                  <Folder key={k} id={`q-${k}`} title={k === "none" ? "Uncategorised" : (categoryLabel(k) ?? k)} count={items.length} latest={`\u201c${items[0].text}\u201d`} open={i === 0} tint="bg-indigo-500/15 text-indigo-200">
+                    <ShowMore key={k} initial={8} label="More quotes" className="grid gap-3 sm:grid-cols-2">
+                      {items.map((x) => (
+                        <Card key={x.id}>
+                  <p className="text-[15px] leading-relaxed text-neutral-100">&ldquo;{x.text}&rdquo;</p>
+                  <div className="mt-3 flex items-center justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-2 text-xs text-neutral-400">
+                      {x.author && <span className="truncate">— {x.author}</span>}
+                      {x.category && <Badge>{categoryLabel(x.category)}</Badge>}
+                      <ActionButton action={makeMantra} fields={{ text: x.text }} label="Make mantra" doneLabel="In mantras" />
+                    </div>
+                    <form action={deleteQuote}>
+                      <input type="hidden" name="id" value={x.id} />
+                      <button className="text-xs text-red-500 hover:text-red-400" type="submit">
+                        remove
+                      </button>
+                    </form>
+                  </div>
+                </Card>
+                      ))}
+                    </ShowMore>
+                  </Folder>
+                ))}
+              </div>
+            )
           )}
         </>
       )}

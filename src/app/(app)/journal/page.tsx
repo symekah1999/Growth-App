@@ -8,17 +8,56 @@ import { addDaysISO, formatDate, todayISO } from "@/lib/utils";
 import { MOOD_SCORE } from "@/lib/mood";
 import { TrendLine } from "@/components/charts/TrendLine";
 import Link from "next/link";
+import { ShowMore } from "@/components/ShowMore";
+import { Folder, ViewToggle, groupBy, monthLabel } from "@/components/Folders";
 import { photoUrl } from "@/lib/images";
+
+type Entry = typeof journalEntries.$inferSelect;
+
+function EntryCard({ e }: { e: Entry }) {
+  return (
+            <Card>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Link href={`/journal/${e.id}`} className="font-medium text-neutral-100 hover:underline">
+                      {e.title || formatDate(e.entryDate)}
+                    </Link>
+                    {e.mood && <Badge>{e.mood}</Badge>}
+                    <Link href={`/day?d=${e.entryDate}`} className="text-xs text-neutral-500 hover:text-neutral-300 hover:underline">{formatDate(e.entryDate)}</Link>
+                  </div>
+                  <p className="mt-2 line-clamp-3 whitespace-pre-wrap text-sm text-neutral-400">{e.body}</p>
+                  {e.tags.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {e.tags.map((t) => (
+                        <Badge key={t} className="border-neutral-800 text-neutral-500">
+                          #{t}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <form action={deleteEntry}>
+                  <input type="hidden" name="id" value={e.id} />
+                  <Button type="submit" variant="danger" className="shrink-0">
+                    Delete
+                  </Button>
+                </form>
+              </div>
+            </Card>
+  );
+}
 
 const MOODS = ["grateful", "energized", "neutral", "anxious", "low", "reflective", "hopeful"];
 
 export default async function JournalPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; mood?: string; prompt?: string }>;
+  searchParams: Promise<{ q?: string; mood?: string; prompt?: string; view?: string }>;
 }) {
   const user = await requireUser();
-  const { q, mood, prompt } = await searchParams;
+  const { q, mood, prompt, view: viewParam } = await searchParams;
+  const view = viewParam === "mood" ? "mood" : viewParam === "list" ? "list" : "month";
 
   const conditions = [eq(journalEntries.userId, user.id)];
   if (mood) conditions.push(eq(journalEntries.mood, mood));
@@ -33,7 +72,7 @@ export default async function JournalPage({
     .from(journalEntries)
     .where(and(...conditions))
     .orderBy(desc(journalEntries.entryDate), desc(journalEntries.createdAt))
-    .limit(100);
+    .limit(400);
 
   // Mood trend: average mood score per day over the last 60 days
   const since = addDaysISO(todayISO(), -59);
@@ -108,7 +147,8 @@ export default async function JournalPage({
         </Card>
       )}
 
-      <form className="mb-4 flex flex-wrap gap-2" action="/journal">
+      <form id="entries" className="mb-4 flex scroll-mt-20 flex-wrap gap-2" action="/journal">
+        <input type="hidden" name="view" value={view} />
         <Input name="q" defaultValue={q ?? ""} placeholder="Search entries..." className="max-w-xs" />
         <select
           name="mood"
@@ -130,39 +170,34 @@ export default async function JournalPage({
       {entries.length === 0 ? (
         <EmptyState title="No entries yet" subtitle="Write your first journal entry above." />
       ) : (
-        <div className="space-y-3">
-          {entries.map((e) => (
-            <Card key={e.id}>
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Link href={`/journal/${e.id}`} className="font-medium text-neutral-100 hover:underline">
-                      {e.title || formatDate(e.entryDate)}
-                    </Link>
-                    {e.mood && <Badge>{e.mood}</Badge>}
-                    <Link href={`/day?d=${e.entryDate}`} className="text-xs text-neutral-500 hover:text-neutral-300 hover:underline">{formatDate(e.entryDate)}</Link>
-                  </div>
-                  <p className="mt-2 line-clamp-3 whitespace-pre-wrap text-sm text-neutral-400">{e.body}</p>
-                  {e.tags.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {e.tags.map((t) => (
-                        <Badge key={t} className="border-neutral-800 text-neutral-500">
-                          #{t}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <form action={deleteEntry}>
-                  <input type="hidden" name="id" value={e.id} />
-                  <Button type="submit" variant="danger" className="shrink-0">
-                    Delete
-                  </Button>
-                </form>
-              </div>
-            </Card>
-          ))}
-        </div>
+        <>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <ViewToggle path="/journal" params={{ q, mood }} current={view} options={[{ key: "month", label: "By month" }, { key: "mood", label: "By mood" }, { key: "list", label: "All" }]} hash="entries" accent="bg-sky-500/20 text-sky-100" />
+            <p className="text-xs text-neutral-500">{entries.length} entries</p>
+          </div>
+          {view === "list" ? (
+            <ShowMore initial={10} label="Older entries" className="space-y-3">
+              {entries.map((e) => (
+                <EntryCard key={e.id} e={e} />
+              ))}
+            </ShowMore>
+          ) : (
+            <div className="space-y-2.5">
+              {(view === "month"
+                ? groupBy(entries, (e) => e.entryDate.slice(0, 7)).map(([k, rows]) => ({ key: k, title: monthLabel(rows[0].entryDate), rows }))
+                : groupBy(entries, (e) => e.mood ?? "none").map(([k, rows]) => ({ key: k, title: k === "none" ? "No mood set" : k[0].toUpperCase() + k.slice(1), rows }))
+              ).map((f, i) => (
+                <Folder key={`${view}-${f.key}`} id={`j-${f.key}`} title={f.title} count={f.rows.length} latest={`Latest: ${f.rows[0].title || f.rows[0].body}`} open={i === 0} tint="bg-sky-500/15 text-sky-200">
+                  <ShowMore key={`${view}-${f.key}`} initial={5} label="Older entries" className="space-y-3">
+                    {f.rows.map((e) => (
+                      <EntryCard key={e.id} e={e} />
+                    ))}
+                  </ShowMore>
+                </Folder>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

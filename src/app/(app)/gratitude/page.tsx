@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Button, Card, EmptyState, PageHeader, Select, Textarea } from "@/components/ui";
 import { DayHeatmap, type HeatCell } from "@/components/charts/DayHeatmap";
 import { ShowMore } from "@/components/ShowMore";
+import { Folder, ViewToggle, groupBy, monthLabel } from "@/components/Folders";
 import { GRATITUDE_CATEGORIES, getGratitudePrompt } from "@/db/schema-gratitude";
 import {
   currentStreak,
@@ -57,9 +58,25 @@ function Item({ row }: { row: GratitudeRow }) {
   );
 }
 
-export default async function GratitudePage({ searchParams }: { searchParams: Promise<{ cat?: string }> }) {
+function DayBlock({ date, items }: { date: string; items: GratitudeRow[] }) {
+  return (
+    <div className="rounded-lg border border-neutral-800 bg-neutral-950/50 px-3 py-2">
+      <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+        <Link href={`/day?d=${date}`} className="hover:text-neutral-300 hover:underline">{fmtDay(date)}</Link> · {items.length}
+      </p>
+      <ul>
+        {items.map((r) => (
+          <Item key={r.id} row={r} />
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default async function GratitudePage({ searchParams }: { searchParams: Promise<{ cat?: string; view?: string }> }) {
   const user = await requireUser();
-  const { cat } = await searchParams;
+  const { cat, view: viewParam } = await searchParams;
+  const view = viewParam === "month" ? "month" : viewParam === "day" ? "day" : "topic";
   const today = todayISO();
   const prompt = getGratitudePrompt(today);
 
@@ -91,6 +108,13 @@ export default async function GratitudePage({ searchParams }: { searchParams: Pr
   const filtered = (cat ? all.filter((r) => r.category === cat) : all).filter((r) => r.entryDate !== today);
   const groups = new Map<string, GratitudeRow[]>();
   for (const r of filtered) groups.set(r.entryDate, [...(groups.get(r.entryDate) ?? []), r]);
+  const folderRows: { key: string; title: string; rows: GratitudeRow[] }[] =
+    view === "topic"
+      ? [
+          ...GRATITUDE_CATEGORIES.map((c): { key: string; title: string; rows: GratitudeRow[] } => ({ key: c.key, title: c.label, rows: filtered.filter((r) => r.category === c.key) })),
+          ...groupBy(filtered.filter((r) => !GRATITUDE_CATEGORIES.some((c) => c.key === r.category)), (r) => r.category).map(([k, rows]) => ({ key: k, title: catLabel(k), rows })),
+        ].filter((f) => f.rows.length > 0)
+      : groupBy(filtered, (r) => r.entryDate.slice(0, 7)).map(([k, rows]) => ({ key: k, title: monthLabel(rows[0].entryDate), rows }));
 
   return (
     <div>
@@ -234,36 +258,25 @@ export default async function GratitudePage({ searchParams }: { searchParams: Pr
             <Lightbulb size={16} className="text-amber-300" /> Everything I&apos;ve been thankful for
           </h2>
         </div>
-        <div className="mb-3 flex flex-wrap gap-1.5">
-          <Link
-            href="/gratitude#history"
-            className={`rounded-full border px-3 py-1 text-xs ${
-              !cat ? "border-rose-500 bg-rose-500/15 text-rose-200" : "border-neutral-800 text-neutral-400 hover:bg-neutral-800/60"
-            }`}
-          >
-            All
-          </Link>
-          {GRATITUDE_CATEGORIES.map((c) => (
-            <Link
-              key={c.key}
-              href={`/gratitude?cat=${c.key}#history`}
-              className={`rounded-full border px-3 py-1 text-xs ${
-                cat === c.key
-                  ? "border-rose-500 bg-rose-500/15 text-rose-200"
-                  : "border-neutral-800 text-neutral-400 hover:bg-neutral-800/60"
-              }`}
-            >
-              {c.label}
-            </Link>
-          ))}
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <ViewToggle path="/gratitude" params={{ cat }} current={view} options={[{ key: "topic", label: "By topic" }, { key: "month", label: "By month" }, { key: "day", label: "By day" }]} accent="bg-rose-500/20 text-rose-100" hash="history" />
+          <p className="text-xs text-neutral-500">{filtered.length} earlier entries</p>
         </div>
+        {view === "day" && (
+          <div className="mb-3 flex flex-wrap gap-1.5">
+            <Link href="/gratitude?view=day#history" className={`rounded-full border px-3 py-1 text-xs ${!cat ? "border-rose-500 bg-rose-500/15 text-rose-200" : "border-neutral-800 text-neutral-400 hover:bg-neutral-800/60"}`}>All</Link>
+            {GRATITUDE_CATEGORIES.map((c) => (
+              <Link key={c.key} href={`/gratitude?view=day&cat=${c.key}#history`} className={`rounded-full border px-3 py-1 text-xs ${cat === c.key ? "border-rose-500 bg-rose-500/15 text-rose-200" : "border-neutral-800 text-neutral-400 hover:bg-neutral-800/60"}`}>{c.label}</Link>
+            ))}
+          </div>
+        )}
 
-        {groups.size === 0 ? (
+        {filtered.length === 0 ? (
           <EmptyState
             title={all.length === 0 ? "Nothing logged yet" : "Nothing here yet"}
-            subtitle={all.length === 0 ? "Start with just one thing you're thankful for today." : "Try another category."}
+            subtitle={all.length === 0 ? "Start with just one thing you're thankful for today." : "Earlier entries will be filed here by topic and month."}
           />
-        ) : (
+        ) : view === "day" ? (
           <ShowMore key={cat ?? "all"} initial={10} label="Earlier days" className="grid gap-3 md:grid-cols-2">
             {[...groups.entries()].map(([date, items]) => (
               <Card key={date}>
@@ -278,6 +291,18 @@ export default async function GratitudePage({ searchParams }: { searchParams: Pr
               </Card>
             ))}
           </ShowMore>
+        ) : (
+          <div className="space-y-2.5">
+            {folderRows.map((f, i) => (
+              <Folder key={`${view}-${f.key}`} id={`g-${f.key}`} title={f.title} count={f.rows.length} latest={`Latest: ${f.rows[0].text}`} open={i === 0} tint="bg-rose-500/15 text-rose-200">
+                <ShowMore key={`${view}-${f.key}`} initial={6} label="Earlier days" className="space-y-2">
+                  {groupBy(f.rows, (r) => r.entryDate).map(([date, items]) => (
+                    <DayBlock key={date} date={date} items={items} />
+                  ))}
+                </ShowMore>
+              </Folder>
+            ))}
+          </div>
         )}
       </div>
     </div>
