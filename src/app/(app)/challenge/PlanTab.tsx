@@ -2,9 +2,10 @@ import { Check, Circle } from "lucide-react";
 import { Button, Card, Input, Textarea } from "@/components/ui";
 import { TERMS } from "@/db/seed-data/challenge";
 import { DEFAULT_END, DEFAULT_START, type PlanRow, type ScoreRow } from "@/lib/challenge";
-import { savePlan } from "./actions";
+import { restartChallenge, savePlan } from "./actions";
+import { nairobiToday } from "@/lib/challenge";
 
-export function PlanTab({ plan, scorecard, saved }: { plan: PlanRow | null; scorecard: ScoreRow[]; saved: boolean }) {
+export function PlanTab({ plan, scorecard, saved, restart }: { plan: PlanRow | null; scorecard: ScoreRow[]; saved: boolean; restart?: boolean }) {
   const p = plan;
   const done: Record<string, boolean> = {
     headline: !!p?.headline,
@@ -71,6 +72,32 @@ export function PlanTab({ plan, scorecard, saved }: { plan: PlanRow | null; scor
             <Textarea name="excuses" rows={5} defaultValue={excusesText} placeholder={"It rains => I train at home with the 20-minute routine\nI work late => I do 25 minutes instead of 90"} className="mt-1" />
           </label>
           <Button type="submit">Save terms</Button>
+        </form>
+      </Card>
+
+      <Card className="border-red-900/40">
+        <h2 className="text-sm font-semibold text-neutral-100">Restart the challenge</h2>
+        <p className="mt-1 text-xs text-neutral-500">
+          Start the six months again from a new date. Your daily logs, reviews, reflections, rituals and terms are all kept; days before the new start date simply stop counting toward streaks and averages.
+        </p>
+        {restart && <p className="mt-3 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-200" role="alert">Tick the confirmation box to restart.</p>}
+        <form action={restartChallenge} className="mt-3 space-y-3">
+          <label className="block text-xs text-neutral-400">New start date
+            <Input type="date" name="newStart" defaultValue={nairobiToday()} className="mt-1 sm:max-w-xs" />
+          </label>
+          <label className="flex min-h-11 items-center gap-3 rounded-lg border border-neutral-800 px-3 py-2 text-sm text-neutral-200">
+            <input type="checkbox" name="clearRules" defaultChecked className="h-5 w-5 shrink-0 accent-indigo-500" />
+            <span>Clear the 15-rule monthly ticks <span className="block text-xs text-neutral-500">Recommended: they belong to the old run&apos;s months.</span></span>
+          </label>
+          <label className="flex min-h-11 items-center gap-3 rounded-lg border border-neutral-800 px-3 py-2 text-sm text-neutral-200">
+            <input type="checkbox" name="clearScore" className="h-5 w-5 shrink-0 accent-indigo-500" />
+            <span>Clear the scorecard <span className="block text-xs text-neutral-500">Wipes the baseline, month 3 and month 6 entries so you can record a fresh baseline.</span></span>
+          </label>
+          <label className="flex min-h-11 items-center gap-3 rounded-lg border border-red-900/50 px-3 py-2 text-sm text-neutral-100">
+            <input type="checkbox" name="confirm" className="h-5 w-5 shrink-0 accent-red-500" />
+            <span>Yes, restart my challenge from this date</span>
+          </label>
+          <Button type="submit" variant="danger" className="h-11 w-full justify-center sm:w-auto">Restart challenge</Button>
         </form>
       </Card>
 

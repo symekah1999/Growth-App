@@ -19,6 +19,7 @@ import { ANIMALS } from "@/db/seed-data/wild";
 import { DAILY_CHECKS, SCORECARD } from "@/db/seed-data/challenge";
 import { requireUser } from "@/lib/auth";
 import { DEFAULT_END, DEFAULT_START, nairobiToday, weekStartOf } from "@/lib/challenge";
+import { addDaysISO } from "@/lib/utils";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -287,4 +288,22 @@ export async function completeEvening(fd: FormData) {
     .onConflictDoUpdate({ target: [challengeRituals.userId, challengeRituals.day, challengeRituals.kind], set: { answers, completedAt: new Date() } });
   refresh();
   redirect("/challenge?tab=today&ritual=evening");
+}
+
+/** Restart the challenge clock from a new start date. Logs, reviews and reflections are kept; only the run-specific monthly ticks (and optionally the scorecard) are cleared. */
+export async function restartChallenge(fd: FormData) {
+  const user = await requireUser();
+  if (fd.get("confirm") !== "on") back("plan", "&restart=confirm");
+  const rawStart = str(fd, "newStart");
+  const start = ISO.test(rawStart) ? rawStart : nairobiToday();
+  const end = addDaysISO(start, 181); // about six months
+  const values = { startDate: start, endDate: end, updatedAt: new Date() };
+  await db
+    .insert(challengePlan)
+    .values({ userId: user.id, ...values, headline: "", headlineBy: null, support1: "", support2: "", why: "", vices: [], people: [], excuses: [] })
+    .onConflictDoUpdate({ target: challengePlan.userId, set: values });
+  if (fd.get("clearRules") === "on") await db.delete(challengeRuleChecks).where(eq(challengeRuleChecks.userId, user.id));
+  if (fd.get("clearScore") === "on") await db.delete(challengeScorecard).where(eq(challengeScorecard.userId, user.id));
+  refresh();
+  back("today", "&restarted=1");
 }

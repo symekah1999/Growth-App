@@ -32,7 +32,7 @@ const TABS = [
   { key: "guide", label: "Guide" },
 ] as const;
 
-export default async function ChallengePage({ searchParams }: { searchParams: Promise<{ tab?: string; d?: string; w?: string; p?: string; ritual?: string; saved?: string }> }) {
+export default async function ChallengePage({ searchParams }: { searchParams: Promise<{ tab?: string; d?: string; w?: string; p?: string; ritual?: string; restart?: string; restarted?: string; saved?: string }> }) {
   const user = await requireUser();
   const sp = await searchParams;
   const tab = TABS.some((t) => t.key === sp.tab) ? sp.tab! : "today";
@@ -113,6 +113,7 @@ export default async function ChallengePage({ searchParams }: { searchParams: Pr
         ))}
       </div>
 
+      {tab === "today" && sp.restarted === "1" && <p className="mb-3 rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300" role="status">Challenge restarted. Day 1 is your new start date.</p>}
       {tab === "today" && data.rituals && (() => {
         const m = data.rituals.some((r) => r.day === today && r.kind === "morning");
         const e = data.rituals.some((r) => r.day === today && r.kind === "evening");
@@ -144,7 +145,7 @@ export default async function ChallengePage({ searchParams }: { searchParams: Pr
       )}
       {tab === "today" && <TodayTab plan={plan} hasPlan={!!data.plan} days={data.days} day={day} today={today} phase={phase} st={st} saved={saved} other={other} />}
       {tab === "rules" && <RulesTab checks={data.ruleChecks} month={phase.month} started={phase.started && !phase.finished} />}
-      {tab === "plan" && <PlanTab plan={data.plan} scorecard={data.scorecard} saved={saved} />}
+      {tab === "plan" && <PlanTab plan={data.plan} scorecard={data.scorecard} saved={saved} restart={sp.restart === "confirm"} />}
       {tab === "review" && <ReviewTab reviews={data.reviews} setbacks={data.setbacks} st={st} today={today} saved={saved} />}
       {tab === "scorecard" && <ScoreTab rows={data.scorecard} st={st} saved={saved} start={plan.startDate} mid={mid} end={plan.endDate} />}
       {tab === "keepup" && (part2 ? <KeepUpTab rows={data.ruleWeeks!} days={data.days} week={week} thisWeek={thisWeek} start={plan.startDate} /> : setup2)}
