@@ -6,6 +6,7 @@ import { addDaysISO, formatDate } from "@/lib/utils";
 import { photoUrl } from "@/lib/images";
 import { Button, Card, Input, PageHeader, Textarea } from "@/components/ui";
 import { Folder } from "@/components/Folders";
+import { TabFooter, TabNav, type TabItem } from "@/components/TabNav";
 import { QUARTER_HINTS, THEME_WORDS, YEAR_AREAS, affirmationForDay } from "@/db/seed-data/life";
 import { currentPlan, loadYear, yearInfo } from "@/lib/year";
 import { addBucketItem, createYearPlan, removeBucketItem, saveQuarterFocus, saveYearGoal, saveYearReview, saveYearVision, toggleBucketItem } from "./actions";
@@ -129,13 +130,13 @@ export default async function YearPage({ searchParams }: { searchParams: Promise
 
   const info = yearInfo(plan.startDate, today);
   const tab = ["vision", "goals", "quarters", "bucket", "checkins"].includes(sp.tab ?? "") ? sp.tab! : "vision";
-  const tabs = [
-    { key: "vision", label: "Vision" },
-    { key: "goals", label: "Goals" },
-    { key: "quarters", label: "Quarters" },
-    { key: "bucket", label: `${plan.age} for ${plan.age}` },
-    { key: "checkins", label: "Check-ins" },
-  ];
+  const tabs: TabItem[] = ([
+    { key: "vision", label: "Vision", icon: "vision", hint: "Theme, vision, what you leave behind and the letter to yourself." },
+    { key: "goals", label: "Goals", icon: "goals", hint: "One goal per life area, with a measure and quarterly milestones." },
+    { key: "quarters", label: "Quarters", icon: "quarters", hint: "A focus for each quarter and a review when it ends." },
+    { key: "bucket", label: `${plan.age} for ${plan.age}`, icon: "bucket", hint: `${plan.age} things to do, see or try before you turn ${plan.age + 1}.` },
+    { key: "checkins", label: "Check-ins", icon: "checkins", hint: "A short monthly check-in to keep the year on track." },
+  ] satisfies Omit<TabItem, "href">[]).map((t) => ({ ...t, href: `/year?age=${plan.age}&tab=${t.key}` }));
   const goals = plan.goals ?? {};
   const setGoals = YEAR_AREAS.filter((a) => goals[a.key]?.goal);
   const avgProgress = setGoals.length ? Math.round(setGoals.reduce((s, a) => s + (goals[a.key]?.progress ?? 0), 0) / setGoals.length) : 0;
@@ -146,7 +147,7 @@ export default async function YearPage({ searchParams }: { searchParams: Promise
   const letterOpen = !plan.sealed || today >= info.end;
 
   return (
-    <div>
+    <div className="mx-auto max-w-4xl">
       <PageHeader image={photoUrl("progress")} eyebrow="My year" title={`Year ${plan.age}`} subtitle={plan.theme ? `Theme: ${plan.theme}` : "Birthday to birthday. Program it on purpose."} />
 
       {info.isBirthday && (
@@ -182,11 +183,7 @@ export default async function YearPage({ searchParams }: { searchParams: Promise
         )}
       </Card>
 
-      <div className="-mx-4 mb-4 flex gap-1 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
-        {tabs.map((t) => (
-          <Link key={t.key} href={`/year?age=${plan.age}&tab=${t.key}`} className={`shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium ${tab === t.key ? "bg-indigo-600/20 text-indigo-200" : "text-neutral-400 hover:bg-neutral-800 hover:text-neutral-100"}`}>{t.label}</Link>
-        ))}
-      </div>
+      <TabNav tabs={tabs} active={tab} />
 
       {tab === "vision" && (
         <Card>
@@ -366,6 +363,7 @@ export default async function YearPage({ searchParams }: { searchParams: Promise
           </Card>
         </div>
       )}
+      <TabFooter tabs={tabs} active={tab} />
     </div>
   );
 }

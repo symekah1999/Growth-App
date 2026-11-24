@@ -16,21 +16,22 @@ import { PillarsTab } from "./PillarsTab";
 import { WildTab } from "./WildTab";
 import { KeepUpTab } from "./KeepUpTab";
 import { ProverbsTab } from "./ProverbsTab";
+import { TabFooter, TabNav, type TabItem } from "@/components/TabNav";
 
 export const dynamic = "force-dynamic";
 
-const TABS = [
-  { key: "today", label: "Today" },
-  { key: "rules", label: "15 rules" },
-  { key: "keepup", label: "Keep-up" },
-  { key: "plan", label: "My terms" },
-  { key: "review", label: "Review" },
-  { key: "scorecard", label: "Scorecard" },
-  { key: "proverbs", label: "Proverbs" },
-  { key: "pillars", label: "10 Pillars" },
-  { key: "wild", label: "Apex" },
-  { key: "guide", label: "Guide" },
-] as const;
+const TABS: Omit<TabItem, "href">[] = [
+  { key: "today", label: "Today", icon: "today", group: "Every day", hint: "Rituals, today's verse and your 7 points for the day." },
+  { key: "keepup", label: "Keep-up", icon: "keepup", group: "Every day", hint: "This week at a glance: which rules you kept and where you slipped." },
+  { key: "rules", label: "15 rules", icon: "rules", group: "Every day", hint: "The 15 rules by phase. Tick a month once you have the proof." },
+  { key: "proverbs", label: "Proverbs", icon: "proverbs", group: "Wisdom", hint: "Today's verse, what it teaches, and one thing to try." },
+  { key: "pillars", label: "10 Pillars", icon: "pillars", group: "Wisdom", hint: "Check the ten pillars you lived today and see which is falling behind." },
+  { key: "wild", label: "Apex", icon: "wild", group: "Wisdom", hint: "Longevity and life principles from apex animals, one a day." },
+  { key: "review", label: "Review", icon: "review", group: "Track", hint: "Weekly reviews and setbacks, filed by month." },
+  { key: "scorecard", label: "Scorecard", icon: "scorecard", group: "Track", hint: "Baseline, midpoint and final numbers side by side." },
+  { key: "plan", label: "My terms", icon: "plan", group: "Setup", hint: "Your dates, your why and the headline you are working towards." },
+  { key: "guide", label: "Guide", icon: "guide", group: "Setup", hint: "How the challenge works and how to use each section." },
+];
 
 export default async function ChallengePage({ searchParams }: { searchParams: Promise<{ tab?: string; d?: string; w?: string; p?: string; ritual?: string; restart?: string; restarted?: string; saved?: string }> }) {
   const user = await requireUser();
@@ -97,22 +98,15 @@ export default async function ChallengePage({ searchParams }: { searchParams: Pr
     </Card>
   );
   const mid = addDaysISO(plan.startDate, 91);
+  const nav: TabItem[] = [
+    ...TABS.map((t) => ({ ...t, href: `/challenge?tab=${t.key}` })),
+    { key: "recap", label: "Recap", icon: "recap", href: "/challenge/recap", group: "Track", hint: "The story of your challenge so far, in numbers.", accent: true },
+  ];
 
   return (
-    <div>
+    <div className="mx-auto max-w-4xl">
       {header}
-      <div className="-mx-4 mb-4 flex gap-1 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
-        {TABS.map((t) => (
-          <Link
-            key={t.key}
-            href={`/challenge?tab=${t.key}`}
-            className={`shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium ${tab === t.key ? "bg-indigo-600/20 text-indigo-200" : "text-neutral-400 hover:bg-neutral-800 hover:text-neutral-100"}`}
-          >
-            {t.label}
-          </Link>
-        ))}
-        <Link href="/challenge/recap" className="shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium text-amber-300 hover:bg-neutral-800">Recap ↗</Link>
-      </div>
+      <TabNav tabs={nav} active={tab} />
 
       {tab === "today" && sp.restarted === "1" && <p className="mb-3 rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300" role="status">Challenge restarted. Day 1 is your new start date.</p>}
       {tab === "today" && data.rituals && (() => {
@@ -176,6 +170,7 @@ export default async function ChallengePage({ searchParams }: { searchParams: Pr
         )
       )}
       {tab === "guide" && <GuideTab />}
+      <TabFooter tabs={nav} active={tab} />
     </div>
   );
 }

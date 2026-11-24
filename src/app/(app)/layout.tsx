@@ -52,7 +52,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </button>
         </form>
       </aside>
-      <main className="min-w-0 flex-1 overflow-y-auto bg-[radial-gradient(ellipse_120%_60%_at_50%_-10%,rgba(99,102,241,0.08),transparent)]">
+      <main className="min-w-0 flex-1 [overflow-x:clip] bg-[radial-gradient(ellipse_120%_60%_at_50%_-10%,rgba(99,102,241,0.08),transparent)]">
         <div className="mx-auto max-w-6xl px-4 py-4 pb-24 sm:px-6 sm:py-5 md:pb-5 lg:px-8">{children}</div>
       </main>
       <ChatWidget />

@@ -33,3 +33,11 @@ body {
   background: #262626;
   border-radius: 9999px;
 }
+
+/* Section bar pinned to the top of the screen while scrolling. */
+.tabbar-sticky {
+  position: sticky;
+  z-index: 20;
+  top: 0;
+  padding-top: env(safe-area-inset-top);
+}
