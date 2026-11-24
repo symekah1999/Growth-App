@@ -11,6 +11,8 @@ import { DEFAULT_END, DEFAULT_START, loadChallenge, nairobiHour, nairobiToday, p
 import { addDaysISO, formatDate } from "@/lib/utils";
 import { completeEvening, completeMorning } from "../actions";
 import { RitualFlow, type RitualStep } from "./RitualFlow";
+import { affirmationForDay } from "@/db/seed-data/life";
+import { loadYear } from "@/lib/year";
 
 export const dynamic = "force-dynamic";
 
@@ -62,6 +64,9 @@ export default async function RitualPage({ searchParams }: { searchParams: Promi
   const morning = mine("morning");
   const evening = mine("evening");
   const dateLabel = formatDate(today);
+  const yearData = await loadYear(user.id);
+  const birthday = yearData?.plans.find((p) => p.startDate === today) ?? null;
+  const affirmation = affirmationForDay(today);
 
   const month = phase.started && !phase.finished ? MONTHS[phase.month - 1] : null;
   const dayLine = phase.finished ? "The challenge is complete" : phase.started ? `Day ${phase.dayNo} of ${phase.total}` : `Starts in ${Math.abs(phase.dayNo - 1)} days`;
@@ -84,7 +89,7 @@ export default async function RitualPage({ searchParams }: { searchParams: Promi
         key: "hello", label: "Good morning",
         node: (
           <>
-            <Title kicker={`${dateLabel} · ${dayLine}`}>Good morning, Shadrack.</Title>
+            <Title kicker={`${dateLabel} · ${dayLine}`}>{birthday ? `Happy birthday, Shadrack. Year ${birthday.age} starts today.` : "Good morning, Shadrack."}</Title>
             {month && (
               <Card className="mb-3 !p-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-indigo-300">Month {month.n}: {month.title}</p>
@@ -185,6 +190,10 @@ export default async function RitualPage({ searchParams }: { searchParams: Promi
         node: (
           <>
             <Title kicker="Ready">Now go and do it.</Title>
+            <div className="mb-4 rounded-xl border border-amber-800/40 bg-amber-950/10 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-amber-300">Say it out loud</p>
+              <p className="mt-1 text-lg font-semibold leading-snug text-neutral-50">{affirmation.text}</p>
+            </div>
             <P>Stand tall. Make the bed. Do the hard thing first. Come back tonight for the evening ritual.</P>
             <div className="rounded-xl border border-neutral-800 p-4 text-sm text-neutral-300">
               <p className="mb-2 font-semibold text-neutral-100">Your day at a glance</p>

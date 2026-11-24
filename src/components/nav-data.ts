@@ -26,6 +26,9 @@ import {
   Zap,
   Swords,
   Sunrise,
+  Cake,
+  Ban,
+  Sun,
   ScrollText,
   type LucideIcon,
 } from "lucide-react";
@@ -55,7 +58,9 @@ export const NAV_SECTIONS: NavSection[] = [
       { href: "/habits", label: "Habits", icon: Flame },
       { href: "/recovery", label: "Recovery", icon: HeartPulse },
       { href: "/systems", label: "Life Systems", icon: Compass },
+      { href: "/year", label: "My year", icon: Cake },
       { href: "/challenge", label: "6-Month Challenge", icon: Swords },
+      { href: "/todont", label: "To-don't list", icon: Ban },
       { href: "/review", label: "Weekly review", icon: CalendarCheck },
       { href: "/progress", label: "Progress", icon: Trophy },
       { href: "/trends", label: "Trends", icon: TrendingUp },
@@ -64,6 +69,7 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     label: "Mind & Faith",
     links: [
+      { href: "/affirmations", label: "Affirmations", icon: Sun },
       { href: "/mantras", label: "Mantras & Values", icon: Sparkles },
       { href: "/bible", label: "Bible", icon: BookOpen },
       { href: "/quotes", label: "Quotes", icon: Quote },

@@ -7,6 +7,7 @@ import { challengeDays, challengePillars, challengeProverbs, challengeReviews, c
 import { DAILY_CHECKS } from "@/db/seed-data/challenge";
 import { PILLARS } from "@/db/seed-data/pillars";
 import { ANIMALS } from "@/db/seed-data/wild";
+import { myAffirmations, todontLogs, todonts, yearPlans, yearReviews } from "@/db/schema-life";
 
 export const SECTIONS = [
   { key: "journal", label: "Journal", href: "/journal", color: "bg-sky-500/20 text-sky-200" },
@@ -19,6 +20,9 @@ export const SECTIONS = [
   { key: "review", label: "Reviews", href: "/challenge?tab=review", color: "bg-rose-500/20 text-rose-200" },
   { key: "recovery", label: "Recovery", href: "/recovery", color: "bg-teal-500/20 text-teal-200" },
   { key: "money", label: "Money", href: "/savings", color: "bg-orange-500/20 text-orange-200" },
+  { key: "todont", label: "To-don't", href: "/todont", color: "bg-red-500/20 text-red-200" },
+  { key: "year", label: "My year", href: "/year", color: "bg-fuchsia-500/20 text-fuchsia-200" },
+  { key: "affirm", label: "Affirmations", href: "/affirmations", color: "bg-yellow-500/20 text-yellow-100" },
 ] as const;
 export type SectionKey = (typeof SECTIONS)[number]["key"];
 
@@ -88,6 +92,38 @@ export async function loadEntries(userId: string, since: string): Promise<Entry[
     ),
   ]);
 
+  const [tdLogs, tdItems, yReviews, yPlans, affirms] = await Promise.all([
+    safe(db.select().from(todontLogs).where(and(eq(todontLogs.userId, userId), gte(todontLogs.day, since))).limit(3000)),
+    safe(db.select({ id: todonts.id, text: todonts.text }).from(todonts).where(eq(todonts.userId, userId))),
+    safe(db.select().from(yearReviews).where(eq(yearReviews.userId, userId))),
+    safe(db.select({ age: yearPlans.age, startDate: yearPlans.startDate }).from(yearPlans).where(eq(yearPlans.userId, userId))),
+    safe(db.select().from(myAffirmations).where(eq(myAffirmations.userId, userId)).orderBy(desc(myAffirmations.createdAt)).limit(200)),
+  ]);
+  const tdName = (id: string) => tdItems.find((t) => t.id === id)?.text ?? "Removed item";
+  for (const [day, list] of groupLogs(tdLogs)) {
+    if (day < since) continue;
+    const held = list.filter((l) => l.held).length;
+    const slipped = list.filter((l) => !l.held);
+    out.push({
+      id: `td-${day}`, day, at: Math.max(...list.map((l) => ms(l.updatedAt, dayMs(day)))), section: "todont", title: `To-don't: held ${held}, slipped ${slipped.length}`,
+      lines: slipped.length ? slipped.map((l) => ({ l: "Slipped", t: l.note ? `${tdName(l.todontId)} (${l.note})` : tdName(l.todontId) })) : [{ t: "Held the line on everything logged." }],
+      href: "/todont",
+    });
+  }
+  for (const r of yReviews) {
+    const at = ms(r.updatedAt, Date.now());
+    const day = new Date(at).toISOString().slice(0, 10);
+    if (day < since) continue;
+    out.push({ id: `yr-${r.age}-${r.kind}-${r.period}`, day, at, section: "year", title: `Year ${r.age}: ${r.kind === "quarter" ? `Q${r.period} review` : `month ${r.period} check-in`}${r.rating ? ` (${r.rating}/10)` : ""}`, lines: pairs([["Wins", r.wins], ["Lessons", r.lessons], ["Adjust", r.adjust]]), href: `/year?age=${r.age}&tab=${r.kind === "quarter" ? "quarters" : "checkins"}` });
+  }
+  for (const p of yPlans)
+    if (p.startDate >= since) out.push({ id: `yp-${p.age}`, day: p.startDate, at: dayMs(p.startDate), section: "year", title: `Year ${p.age} began`, lines: [{ t: "Birthday. A new year of life started." }], href: `/year?age=${p.age}` });
+  for (const a of affirms) {
+    const day = new Date(a.createdAt).toISOString().slice(0, 10);
+    if (day < since) continue;
+    out.push({ id: `af-${a.id}`, day, at: ms(a.createdAt), section: "affirm", title: a.libraryKey ? "Affirmation saved" : "Affirmation written", lines: [{ t: a.text }], href: "/affirmations" });
+  }
+
   for (const j of journal)
     out.push({ id: `j-${j.id}`, day: j.entryDate, at: ms(j.createdAt, dayMs(j.entryDate)), section: "journal", title: j.title || "Journal entry", lines: [{ t: j.body }, ...pairs([["Mood", j.mood], ["Tags", j.tags?.length ? j.tags.join(", ") : ""]])], href: "/journal" });
 
@@ -153,4 +189,10 @@ export async function loadEntries(userId: string, since: string): Promise<Entry[
     out.push({ id: `dp-${p.id}`, day: p.day, at: ms(p.at, dayMs(p.day)), section: "money", title: `Paid toward ${p.name}`, lines: [{ t: `${p.currency} ${Number(p.amount).toLocaleString("en-US")}` }, ...pairs([["Note", p.note]])], href: "/debts" });
 
   return out.sort((a, b) => (a.day === b.day ? b.at - a.at : a.day < b.day ? 1 : -1));
+}
+
+function groupLogs<T extends { day: string }>(rows: T[]) {
+  const m = new Map<string, T[]>();
+  for (const r of rows) m.set(r.day, [...(m.get(r.day) ?? []), r]);
+  return m;
 }
