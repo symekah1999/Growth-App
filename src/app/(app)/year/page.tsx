@@ -15,6 +15,49 @@ export const dynamic = "force-dynamic";
 const ord = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][n % 10] ?? "th"}`;
 const lastDay = (to: string) => addDaysISO(to, -1);
 
+const LETTER_GUIDE: { title: string; body: string }[] = [
+  { title: "Where you are right now", body: "Describe your life today plainly: work, money, health, faith, the people closest to you, what a normal day looks like. If you are at a turning point, say so. A year from now these details will be the most surprising part to reread, because you will have forgotten how today felt. A list of goals is not enough, since the Goals tab already holds those. Think of this as a time capsule." },
+  { title: "What you are carrying", body: "Write down what worries you, what you are unsure about, what you are quietly afraid of and what you are struggling with. You will only reread this once, so be honest. Reading it later shows which fears came true and which never did, and that is one of the most useful things the letter can teach you." },
+  { title: "What you hope for", body: "These are hopes, not targets: who you hope to have become, what you hope you have learned, and where you would like to be in your walk with God. Write it as \"I hope by now you...\". Hopes are softer than goals and often more revealing." },
+  { title: "Promises to yourself", body: "Choose two or three things you are committing to this year: how you will treat people, what you will stop tolerating, what you will show up for every day. Keep them few so they carry weight." },
+  { title: "Questions for the man reading this", body: "Ask him things you can only answer in a year. Did you keep going when it got hard? Did the job come, and was it what you wanted? Are you closer to God? Who turned out to matter? These make the opening feel like a real conversation." },
+  { title: "Gratitude for the year behind you", body: "Name what the last year gave you, including the hard parts and what they taught you. It gives the letter perspective and reminds the reader how far he has come." },
+  { title: "A blessing or verse", body: "End with something you would want to hear on a hard day: a prayer, a verse that matters to you now, or simply \"I am proud of you for...\"." },
+];
+
+const LETTER_TIPS = [
+  "Write by hand first if that helps, then type it in. One sitting of 20 to 40 minutes is enough.",
+  "Write in your own voice. It is not meant to be impressive; it is meant to be true.",
+  "Leave out passwords, account numbers and anything you would be uncomfortable seeing on a screen later.",
+  "Only seal it when you are happy with it. After that you cannot read or edit it until your next birthday.",
+];
+
+function LetterGuide({ age, empty }: { age: number; empty: boolean }) {
+  return (
+    <details open={empty} className="mt-3 rounded-lg border border-amber-800/30 bg-neutral-950/40 p-3">
+      <summary className="cursor-pointer text-sm font-medium text-amber-200">How to write it: 7 parts to cover</summary>
+      <p className="mt-2 text-xs text-neutral-400">Write to the man reading this on your {ord(age + 1)} birthday. Be honest and specific about where you are now. Work through the parts in order, or in any order that flows.</p>
+      <ol className="mt-3 space-y-2.5">
+        {LETTER_GUIDE.map((g, i) => (
+          <li key={g.title} className="flex gap-3">
+            <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-xs font-semibold text-amber-200">{i + 1}</span>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-neutral-100">{g.title}</p>
+              <p className="mt-0.5 text-xs leading-relaxed text-neutral-400">{g.body}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+      <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-neutral-500">Tips</p>
+      <ul className="mt-1.5 space-y-1.5">
+        {LETTER_TIPS.map((t) => (
+          <li key={t} className="text-xs leading-relaxed text-neutral-400">• {t}</li>
+        ))}
+      </ul>
+    </details>
+  );
+}
+
 function Saved() {
   return <p className="mb-3 rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300" role="status">Saved ✓</p>;
 }
@@ -178,7 +221,8 @@ export default async function YearPage({ searchParams }: { searchParams: Promise
               ) : (
                 <>
                   <p className="mt-1 text-xs text-neutral-500">Write to the man you will be in a year: your hopes, fears, promises and questions. Seal it and it stays hidden until your next birthday.</p>
-                  <Textarea name="letter" rows={6} maxLength={8000} defaultValue={plan.letter} className="mt-2" />
+                  <LetterGuide age={plan.age} empty={!plan.letter} />
+                  <Textarea name="letter" rows={14} maxLength={8000} defaultValue={plan.letter} className="mt-3" />
                   <label className="mt-2 flex min-h-11 items-center gap-3 text-sm text-neutral-200">
                     <input type="checkbox" name="seal" className="h-5 w-5 accent-amber-500" /> Seal it until {formatDate(info.end)} (can&apos;t be read or edited until then)
                   </label>
