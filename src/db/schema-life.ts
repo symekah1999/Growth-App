@@ -89,3 +89,38 @@ export const yearReviews = pgTable(
   },
   (t) => [primaryKey({ columns: [t.userId, t.age, t.kind, t.period] })],
 );
+
+/** Daily reflection on the "Rules to live by": the sentence of the day, how it was lived, and 1% better. SQL: drizzle/manual/life-3.sql */
+export const ruleReflections = pgTable(
+  "rule_reflections",
+  {
+    userId: uuid("user_id").notNull(),
+    day: date("day").notNull(),
+    sentence: smallint("sentence").notNull(),
+    hack: smallint("hack").notNull(),
+    action: text("action").notNull().default(""),
+    lived: text("lived").notNull().default(""), // yes | partly | no | ""
+    applied: boolean("applied").notNull().default(false),
+    better: text("better").notNull().default(""),
+    note: text("note").notNull().default(""),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.day] })],
+);
+
+/** Growth experiments (No-Complaint, 75 Hard, 52-Week Money…): one row per challenge, restarted on a slip. */
+export const growthTrials = pgTable(
+  "growth_trials",
+  {
+    userId: uuid("user_id").notNull(),
+    key: text("key").notNull(),
+    startDate: date("start_date").notNull(),
+    active: boolean("active").notNull().default(true),
+    focus: text("focus").notNull().default(""),
+    attempts: smallint("attempts").notNull().default(1),
+    best: smallint("best").notNull().default(0),
+    completed: smallint("completed").notNull().default(0),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.key] })],
+);

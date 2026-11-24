@@ -4,13 +4,13 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft, ArrowRight, BarChart3, BookOpen, CalendarCheck, CalendarDays, ClipboardCheck, Compass, Crown,
-  Eye, Flag, Gauge, LayoutGrid, ListChecks, Map as MapIcon, PawPrint, ScrollText, Sparkles, Sun, Target, X,
+  Eye, Flag, Gem, Gauge, LayoutGrid, ListChecks, Map as MapIcon, PawPrint, ScrollText, Sparkles, Sun, Target, X,
 } from "lucide-react";
 
 const ICONS = {
   today: Sun, rules: ListChecks, keepup: CalendarCheck, plan: ScrollText, review: ClipboardCheck,
   scorecard: Gauge, proverbs: BookOpen, pillars: Crown, wild: PawPrint, guide: Compass, recap: BarChart3,
-  vision: Eye, goals: Target, quarters: MapIcon, bucket: Sparkles, checkins: CalendarDays, flag: Flag,
+  vision: Eye, goals: Target, quarters: MapIcon, bucket: Sparkles, checkins: CalendarDays, flag: Flag, live: Gem,
 } as const;
 
 export type TabIcon = keyof typeof ICONS;

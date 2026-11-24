@@ -7,6 +7,7 @@ import { photoUrl } from "@/lib/images";
 import { Button, Card, Input, PageHeader, Textarea } from "@/components/ui";
 import { Folder } from "@/components/Folders";
 import { TabFooter, TabNav, type TabItem } from "@/components/TabNav";
+import { RulesTab } from "./RulesTab";
 import { QUARTER_HINTS, THEME_WORDS, YEAR_AREAS, affirmationForDay } from "@/db/seed-data/life";
 import { currentPlan, loadYear, yearInfo } from "@/lib/year";
 import { addBucketItem, createYearPlan, removeBucketItem, saveQuarterFocus, saveYearGoal, saveYearReview, saveYearVision, toggleBucketItem } from "./actions";
@@ -86,7 +87,7 @@ function ReviewForm({ age, kind, period, existing, label }: { age: number; kind:
   );
 }
 
-export default async function YearPage({ searchParams }: { searchParams: Promise<{ age?: string; tab?: string; saved?: string }> }) {
+export default async function YearPage({ searchParams }: { searchParams: Promise<{ age?: string; tab?: string; saved?: string; v?: string; h?: string; bed?: string; inc?: string }> }) {
   const user = await requireUser();
   const sp = await searchParams;
   const today = nairobiToday();
@@ -129,13 +130,14 @@ export default async function YearPage({ searchParams }: { searchParams: Promise
   }
 
   const info = yearInfo(plan.startDate, today);
-  const tab = ["vision", "goals", "quarters", "bucket", "checkins"].includes(sp.tab ?? "") ? sp.tab! : "vision";
+  const tab = ["vision", "goals", "quarters", "bucket", "checkins", "rules"].includes(sp.tab ?? "") ? sp.tab! : "vision";
   const tabs: TabItem[] = ([
     { key: "vision", label: "Vision", icon: "vision", hint: "Theme, vision, what you leave behind and the letter to yourself." },
     { key: "goals", label: "Goals", icon: "goals", hint: "One goal per life area, with a measure and quarterly milestones." },
     { key: "quarters", label: "Quarters", icon: "quarters", hint: "A focus for each quarter and a review when it ends." },
     { key: "bucket", label: `${plan.age} for ${plan.age}`, icon: "bucket", hint: `${plan.age} things to do, see or try before you turn ${plan.age + 1}.` },
     { key: "checkins", label: "Check-ins", icon: "checkins", hint: "A short monthly check-in to keep the year on track." },
+    { key: "rules", label: "Rules to live by", icon: "live", hint: "Your notebook: a sentence and a hack each day to reflect on, 14 life hacks, growth challenges and a quick reference." },
   ] satisfies Omit<TabItem, "href">[]).map((t) => ({ ...t, href: `/year?age=${plan.age}&tab=${t.key}` }));
   const goals = plan.goals ?? {};
   const setGoals = YEAR_AREAS.filter((a) => goals[a.key]?.goal);
@@ -362,6 +364,20 @@ export default async function YearPage({ searchParams }: { searchParams: Promise
             </div>
           </Card>
         </div>
+      )}
+
+      {tab === "rules" && (
+        <RulesTab
+          userId={user.id}
+          age={plan.age}
+          yearDay={info.day}
+          today={today}
+          v={sp.v ?? "reflect"}
+          saved={saved}
+          h={sp.h}
+          bed={/^\d{2}:\d{2}$/.test(sp.bed ?? "") ? sp.bed! : "22:30"}
+          inc={Math.min(100_000_000, Math.max(0, Math.round(Number(sp.inc) || 60000)))}
+        />
       )}
       <TabFooter tabs={tabs} active={tab} />
     </div>
