@@ -6,6 +6,8 @@ import { requireUser } from "@/lib/auth";
 import { todayISO } from "@/lib/utils";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { challengeReviews } from "@/db/schema-challenge";
+import { nairobiToday } from "@/lib/challenge";
 
 /** Saves the weekly reflection as a Journal entry tagged "weekly-review". */
 export async function saveReview(formData: FormData) {
@@ -24,6 +26,15 @@ export async function saveReview(formData: FormData) {
     tags: ["weekly-review"],
     entryDate: today,
   });
+  // One Sunday review: if the challenge fields were filled, the same answers also go to the challenge's review log.
+  const pace = String(formData.get("pace") ?? "");
+  if (["ahead", "on", "behind"].includes(pace)) {
+    await db
+      .insert(challengeReviews)
+      .values({ userId: user.id, weekEnding: nairobiToday(), pace, worked: wins, failed: blockers, change: String(formData.get("change") ?? "").trim().slice(0, 2000), nextPlan: focus })
+      .catch(() => null);
+    revalidatePath("/challenge");
+  }
   revalidatePath("/review");
   revalidatePath("/journal");
   redirect("/review?saved=1");

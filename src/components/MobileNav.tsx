@@ -3,15 +3,15 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Menu, X, Sprout, LayoutDashboard, ClipboardCheck, Zap, NotebookPen, Search } from "lucide-react";
+import { Menu, X, Sprout, Sun, Sunrise, Zap, NotebookPen, Search } from "lucide-react";
 import { Nav } from "@/components/nav";
 import { OPEN_PALETTE_EVENT } from "@/components/CommandPalette";
 import { DensityToggle } from "@/components/DensityToggle";
 import { isActive } from "@/components/nav-data";
 
 const BAR = [
-  { href: "/dashboard", label: "Home", icon: LayoutDashboard },
-  { href: "/checkin", label: "Check-in", icon: ClipboardCheck },
+  { href: "/today", label: "Today", icon: Sun },
+  { href: "/challenge/ritual", label: "Ritual", icon: Sunrise },
   { href: "/capture", label: "Capture", icon: Zap },
   { href: "/journal", label: "Journal", icon: NotebookPen },
 ];

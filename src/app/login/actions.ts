@@ -19,5 +19,5 @@ export async function signIn(_prevState: { error: string | null }, formData: For
     return { error: error.message };
   }
 
-  redirect("/dashboard");
+  redirect("/today");
 }

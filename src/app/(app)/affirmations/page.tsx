@@ -8,6 +8,9 @@ import { nairobiToday } from "@/lib/challenge";
 import { photoUrl } from "@/lib/images";
 import { Button, Card, PageHeader, Textarea } from "@/components/ui";
 import { Folder } from "@/components/Folders";
+import { ActionButton } from "@/components/ActionButton";
+import { makeMantra } from "../links/actions";
+import Link from "next/link";
 import { addMyAffirmation, removeMyAffirmation, saveLibraryAffirmation } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -55,7 +58,7 @@ export default async function AffirmationsPage() {
         <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-amber-300"><Sun size={13} /> Today&apos;s affirmation · {catLabel(daily.category)}</p>
         <p className="mt-2 text-xl font-semibold leading-snug text-neutral-50">{daily.text}</p>
         <p className="mt-3 text-sm leading-relaxed text-neutral-300">{daily.deeper}</p>
-        <div className="mt-3"><SaveBtn k={daily.key} from="today" /></div>
+        <div className="mt-3 flex flex-wrap items-center gap-2"><SaveBtn k={daily.key} from="today" /><ActionButton action={makeMantra} fields={{ text: daily.text }} label="Make mantra" doneLabel="In mantras" /></div>
       </Card>
 
       <Card className="mb-6">
@@ -70,6 +73,8 @@ export default async function AffirmationsPage() {
           ))}
         </ol>
       </Card>
+
+      <p className="mb-4 text-xs text-neutral-500">Your short daily mantras and core values live on <Link href="/mantras" className="underline">Mantras &amp; Values</Link>. Use &ldquo;Make mantra&rdquo; on any affirmation to add it there.</p>
 
       <section id="mine" className="mb-6 scroll-mt-20">
         <h2 className="mb-2 text-sm font-semibold text-neutral-100">My affirmations <span className="font-normal text-neutral-500">{mine.length}</span></h2>
@@ -118,7 +123,7 @@ export default async function AffirmationsPage() {
                       <summary className="cursor-pointer select-none text-xs text-amber-300">Go deeper</summary>
                       <p className="mt-1 text-sm leading-relaxed text-neutral-400">{a.deeper}</p>
                     </details>
-                    <div className="mt-2"><SaveBtn k={a.key} /></div>
+                    <div className="mt-2 flex flex-wrap items-center gap-2"><SaveBtn k={a.key} /><ActionButton action={makeMantra} fields={{ text: a.text }} label="Make mantra" doneLabel="In mantras" /></div>
                   </div>
                 ))}
               </Folder>

@@ -16,6 +16,7 @@ export default async function RemindersPage() {
   let devices = 0;
   let morningOn = true;
   let eveningOn = true;
+  let deepOn = true;
   try {
     const subs = await db.select({ id: pushSubscriptions.id }).from(pushSubscriptions).where(eq(pushSubscriptions.userId, user.id));
     devices = subs.length;
@@ -23,6 +24,7 @@ export default async function RemindersPage() {
     if (prefs) {
       morningOn = prefs.morningOn;
       eveningOn = prefs.eveningOn;
+      deepOn = prefs.deepOn;
     }
   } catch {
     missing = true;
@@ -31,13 +33,13 @@ export default async function RemindersPage() {
 
   return (
     <div>
-      <PageHeader image={photoUrl("habits")} title="Reminders" subtitle="A gentle nudge each morning and evening, even when the app is closed." />
+      <PageHeader image={photoUrl("habits")} title="Reminders" subtitle="Smart nudges built around your rituals, even when the app is closed." />
 
       {missing && (
         <Card className="mb-4 border-amber-700/50">
           <p className="text-sm font-semibold text-amber-200">One-time setup needed</p>
           <p className="mt-1 text-sm text-neutral-300">
-            The reminders tables don&apos;t exist yet. Run <code className="rounded bg-neutral-800 px-1">drizzle/manual/push.sql</code> in the Neon SQL editor, then refresh.
+            The reminders tables aren&apos;t set up yet. Run <code className="rounded bg-neutral-800 px-1">drizzle/manual/push.sql</code> and then <code className="rounded bg-neutral-800 px-1">drizzle/manual/life-2.sql</code> in the Neon SQL editor, then refresh.
           </p>
         </Card>
       )}
@@ -62,15 +64,19 @@ export default async function RemindersPage() {
 
       <Card>
         <h2 className="mb-1 text-sm font-semibold text-neutral-100">Which reminders</h2>
-        <p className="mb-3 text-xs text-neutral-500">Morning arrives around 08:00 and evening around 20:00 Nairobi time. Times are set by the schedule in vercel.json.</p>
-        <form action={saveReminderSettings} className="space-y-3">
-          <label className="flex items-center gap-2 text-sm text-neutral-200">
-            <input type="checkbox" name="morningOn" defaultChecked={morningOn} className="h-4 w-4 accent-indigo-500" />
-            Morning: set your intention, see today&apos;s habits and to-dos
+        <p className="mb-3 text-xs text-neutral-500">Times are Nairobi time and can drift by up to an hour (Vercel&apos;s free cron timing). Each message is written from your own data that day.</p>
+        <form action={saveReminderSettings} className="space-y-2">
+          <label className="flex min-h-11 items-start gap-3 rounded-lg border border-neutral-800 px-3 py-2 text-sm text-neutral-200">
+            <input type="checkbox" name="morningOn" defaultChecked={morningOn} className="mt-0.5 h-5 w-5 shrink-0 accent-indigo-500" />
+            <span>About 08:00 · Morning ritual<span className="block text-xs text-neutral-500">Today&apos;s word, your to-don&apos;ts and habits, and a link straight into the ritual. Skipped once you&apos;ve done it.</span></span>
           </label>
-          <label className="flex items-center gap-2 text-sm text-neutral-200">
-            <input type="checkbox" name="eveningOn" defaultChecked={eveningOn} className="h-4 w-4 accent-indigo-500" />
-            Evening: what&apos;s left, and a nudge to log gratitude
+          <label className="flex min-h-11 items-start gap-3 rounded-lg border border-neutral-800 px-3 py-2 text-sm text-neutral-200">
+            <input type="checkbox" name="deepOn" defaultChecked={deepOn} className="mt-0.5 h-5 w-5 shrink-0 accent-indigo-500" />
+            <span>About 09:30 · Deep-work block<span className="block text-xs text-neutral-500">Phone away; names the decisive task you set in the morning ritual.</span></span>
+          </label>
+          <label className="flex min-h-11 items-start gap-3 rounded-lg border border-neutral-800 px-3 py-2 text-sm text-neutral-200">
+            <input type="checkbox" name="eveningOn" defaultChecked={eveningOn} className="mt-0.5 h-5 w-5 shrink-0 accent-indigo-500" />
+            <span>About 20:00 · Evening ritual<span className="block text-xs text-neutral-500">What&apos;s still open today. If yesterday wasn&apos;t logged, it becomes a &ldquo;never miss twice&rdquo; alert. Skipped once the evening ritual is done.</span></span>
           </label>
           <Button type="submit" variant="ghost">Save</Button>
         </form>

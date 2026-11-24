@@ -79,6 +79,13 @@ export default async function CheckinPage({ searchParams }: { searchParams: Prom
         }
       />
 
+      <Link href={`/challenge/ritual?mode=${mode}`} className="mb-4 block rounded-xl border border-indigo-800/50 bg-indigo-500/10 px-4 py-3 text-sm text-indigo-100 active:opacity-80">
+        {mode === "morning"
+          ? "The morning ritual covers prayer, today's verse, your decisive task and your affirmation in one five-minute flow. "
+          : "The evening ritual now scores your 7 points, habits, to-don'ts and pillars in one flow, so you don't need to tick them here as well. "}
+        <span className="font-semibold underline">Open the {mode} ritual</span>
+      </Link>
+
       {sp.saved && (
         <Card className="mb-4 border-emerald-800/60 bg-emerald-950/20">
           <p className="text-sm text-emerald-200">Saved. Well done — small daily check-ins are how big change happens.</p>

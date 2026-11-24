@@ -5,13 +5,14 @@ import { lifeScore, loadProgressData, weeklyReview } from "@/lib/progress";
 import { averageMood, observations, weekRange } from "@/lib/review";
 import { loadGratitude } from "@/lib/gratitude";
 import { lifeLessons } from "@/db/schema-lessons";
-import { currency, formatDate, todayISO } from "@/lib/utils";
+import { attempt, currency, formatDate, todayISO } from "@/lib/utils";
 import { and, desc, eq, gte, sql } from "drizzle-orm";
 import Link from "next/link";
 import { Button, Card, PageHeader, ProgressBar, Textarea } from "@/components/ui";
 import { ShowMore } from "@/components/ShowMore";
 import { photoUrl } from "@/lib/images";
 import { saveReview } from "./actions";
+import { challengePlan } from "@/db/schema-challenge";
 import { AlertTriangle, CalendarCheck, Compass, Trophy } from "lucide-react";
 
 export default async function ReviewPage({ searchParams }: { searchParams: Promise<{ saved?: string }> }) {
@@ -43,6 +44,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
       .limit(30),
   ]);
 
+  const challengeOn = (await attempt(db.select({ u: challengePlan.userId }).from(challengePlan).where(eq(challengePlan.userId, user.id)), null)) !== null;
   const gThisWeek = (gratitudeRows ?? []).filter((g) => g.entryDate >= start);
   const gratitudeDays = new Set(gThisWeek.map((g) => g.entryDate)).size;
   const obs = observations({
@@ -207,6 +209,23 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
               <label className="mb-1 block text-sm text-neutral-300">My focus for next week</label>
               <Textarea name="focus" rows={2} placeholder="The one or two things that matter most." />
             </div>
+            {challengeOn && (
+              <div className="space-y-3 rounded-lg border border-indigo-900/50 bg-indigo-950/10 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-indigo-300">6-Month Challenge</p>
+                <label className="block text-sm text-neutral-300">Against the headline target I am…
+                  <select name="pace" defaultValue="" className="mt-1 w-full rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-neutral-50 outline-none focus:border-indigo-500">
+                    <option value="">Skip the challenge review this week</option>
+                    <option value="ahead">Ahead</option>
+                    <option value="on">On pace</option>
+                    <option value="behind">Behind</option>
+                  </select>
+                </label>
+                <label className="block text-sm text-neutral-300">One change for next week
+                  <Textarea name="change" rows={2} className="mt-1" placeholder="Adjust the system, not the goal." />
+                </label>
+                <p className="text-xs text-neutral-500">Choose a pace and the same answers are also saved to the challenge&apos;s review log, so you only review once.</p>
+              </div>
+            )}
             <Button type="submit">Save review</Button>
           </form>
         </Card>

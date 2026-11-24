@@ -41,7 +41,8 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     label: "Today",
     links: [
-      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/today", label: "Today", icon: Sun },
+      { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
       { href: "/challenge/ritual", label: "Daily ritual", icon: Sunrise },
       { href: "/entries", label: "Entries", icon: ScrollText },
       { href: "/checkin", label: "Daily check-in", icon: ClipboardCheck },

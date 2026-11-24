@@ -13,6 +13,11 @@ import { completeEvening, completeMorning } from "../actions";
 import { RitualFlow, type RitualStep } from "./RitualFlow";
 import { affirmationForDay } from "@/db/seed-data/life";
 import { loadYear } from "@/lib/year";
+import { and, desc, eq, inArray } from "drizzle-orm";
+import { db } from "@/db";
+import { habitLogs, habits } from "@/db/schema";
+import { todontLogs, todonts } from "@/db/schema-life";
+import { todayISO } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -213,6 +218,15 @@ export default async function RitualPage({ searchParams }: { searchParams: Promi
     action = completeEvening;
     finishLabel = "Close the day";
     const doneSet = new Set(data.pillars.filter((p) => p.day === today).map((p) => p.pillar));
+    const hDay = todayISO();
+    const habitRows = await db.select({ id: habits.id, name: habits.name }).from(habits).where(and(eq(habits.userId, user.id), eq(habits.archived, false))).orderBy(desc(habits.createdAt)).catch(() => []);
+    const habitDone = new Set(
+      habitRows.length
+        ? (await db.select({ habitId: habitLogs.habitId }).from(habitLogs).where(and(inArray(habitLogs.habitId, habitRows.map((h) => h.id)), eq(habitLogs.logDate, hDay))).catch(() => [])).map((l) => l.habitId)
+        : [],
+    );
+    const tdRows = await db.select({ id: todonts.id, text: todonts.text }).from(todonts).where(and(eq(todonts.userId, user.id), eq(todonts.active, true))).orderBy(desc(todonts.createdAt)).catch(() => []);
+    const tdState = new Map((await db.select().from(todontLogs).where(and(eq(todontLogs.userId, user.id), eq(todontLogs.day, today))).catch(() => [])).map((l) => [l.todontId, l.held]));
     const checks = (todayRow?.checks ?? {}) as Record<string, boolean>;
     const task = morning.task1;
 
@@ -276,6 +290,58 @@ export default async function RitualPage({ searchParams }: { searchParams: Promi
           </>
         ),
       },
+      ...(habitRows.length
+        ? [
+            {
+              key: "habits", label: "Habits",
+              node: (
+                <>
+                  <Title kicker="Same list as the Habits page">Habits done today?</Title>
+                  <input type="hidden" name="habitIds" value={habitRows.map((h) => h.id).join(",")} />
+                  <div className="space-y-1.5">
+                    {habitRows.map((h) => (
+                      <label key={h.id} className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border border-neutral-800 px-3 py-2 text-sm text-neutral-100 active:bg-neutral-800">
+                        <input type="checkbox" name={`h_${h.id}`} defaultChecked={habitDone.has(h.id)} className="h-5 w-5 shrink-0 accent-indigo-500" />
+                        {h.name}
+                      </label>
+                    ))}
+                  </div>
+                </>
+              ),
+            } as RitualStep,
+          ]
+        : []),
+      ...(tdRows.length
+        ? [
+            {
+              key: "todont", label: "To-don'ts",
+              node: (
+                <>
+                  <Title kicker="Things you refuse to do">Did you hold the line?</Title>
+                  <input type="hidden" name="todontIds" value={tdRows.map((t) => t.id).join(",")} />
+                  <div className="space-y-2">
+                    {tdRows.map((t) => {
+                      const cur = tdState.get(t.id);
+                      return (
+                        <div key={t.id} className="rounded-xl border border-neutral-800 p-3">
+                          <p className="text-sm text-neutral-100">{t.text}</p>
+                          <div className="mt-2 grid grid-cols-3 gap-1.5 text-sm">
+                            {([["held", "Held", "peer-checked:border-emerald-600 peer-checked:bg-emerald-500/25 peer-checked:text-emerald-100"], ["slipped", "Slipped", "peer-checked:border-red-700 peer-checked:bg-red-500/25 peer-checked:text-red-100"], ["", "Not sure", "peer-checked:border-neutral-500 peer-checked:bg-neutral-800 peer-checked:text-neutral-100"]] as const).map(([v, l, on]) => (
+                              <label key={v || "skip"} className="cursor-pointer">
+                                <input type="radio" name={`td_${t.id}`} value={v} defaultChecked={v === "held" ? cur === true : v === "slipped" ? cur === false : cur === undefined} className="peer sr-only" />
+                                <span className={`flex h-10 items-center justify-center rounded-lg border border-neutral-800 text-neutral-400 ${on}`}>{l}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              ),
+            } as RitualStep,
+          ]
+        : []),
       {
         key: "aar", label: "After-action review",
         node: (

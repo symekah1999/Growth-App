@@ -111,6 +111,7 @@ export default async function ChallengePage({ searchParams }: { searchParams: Pr
             {t.label}
           </Link>
         ))}
+        <Link href="/challenge/recap" className="shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium text-amber-300 hover:bg-neutral-800">Recap ↗</Link>
       </div>
 
       {tab === "today" && sp.restarted === "1" && <p className="mb-3 rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300" role="status">Challenge restarted. Day 1 is your new start date.</p>}

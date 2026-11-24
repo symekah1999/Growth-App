@@ -72,3 +72,12 @@ export async function deleteTodont(fd: FormData) {
   await db.delete(todonts).where(and(eq(todonts.userId, user.id), eq(todonts.id, id)));
   done("#manage");
 }
+
+/** One tap: turn an item from the challenge vice list into a to-don't. */
+export async function addViceTodont(fd: FormData) {
+  const user = await requireUser();
+  const vice = str(fd, "vice", 180);
+  if (!vice) return;
+  await db.insert(todonts).values({ userId: user.id, text: `Don't: ${vice}`, why: "On my 6-Month Challenge vice list.", instead: "", category: "life" });
+  done("#today");
+}

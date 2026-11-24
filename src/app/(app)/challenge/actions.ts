@@ -20,7 +20,10 @@ import { DAILY_CHECKS, SCORECARD } from "@/db/seed-data/challenge";
 import { requireUser } from "@/lib/auth";
 import { DEFAULT_END, DEFAULT_START, nairobiToday, weekStartOf } from "@/lib/challenge";
 import { addDaysISO } from "@/lib/utils";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
+import { habitLogs, habits } from "@/db/schema";
+import { todontLogs, todonts } from "@/db/schema-life";
+import { todayISO } from "@/lib/utils";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -251,6 +254,7 @@ export async function completeMorning(fd: FormData) {
   const values = { chapter, reflection: answers.reflection ?? "", updatedAt: new Date() };
   await db.insert(challengeProverbs).values({ userId: user.id, day, ...values }).onConflictDoUpdate({ target: [challengeProverbs.userId, challengeProverbs.day], set: values }).catch(() => null);
   refresh();
+  revalidatePath("/today");
   redirect("/challenge?tab=today&ritual=morning");
 }
 
@@ -281,12 +285,37 @@ export async function completeEvening(fd: FormData) {
   const done = Array.from({ length: 10 }, (_, i) => i + 1).filter((n) => fd.get(`p${n}`) === "on");
   await db.delete(challengePillars).where(and(eq(challengePillars.userId, user.id), eq(challengePillars.day, day))).catch(() => null);
   if (done.length) await db.insert(challengePillars).values(done.map((pillar) => ({ userId: user.id, day, pillar }))).catch(() => null);
+  // 2b. habits: one tick list, written to the same log the Habits page uses
+  const habitIds = String(fd.get("habitIds") ?? "").split(",").filter(Boolean).slice(0, 100);
+  if (habitIds.length) {
+    const own = await db.select({ id: habits.id }).from(habits).where(and(eq(habits.userId, user.id), inArray(habits.id, habitIds))).catch(() => []);
+    const hDay = todayISO();
+    for (const { id } of own) {
+      if (fd.get(`h_${id}`) === "on") await db.insert(habitLogs).values({ habitId: id, logDate: hDay }).onConflictDoNothing();
+      else await db.delete(habitLogs).where(and(eq(habitLogs.habitId, id), eq(habitLogs.logDate, hDay)));
+    }
+  }
+  // 2c. to-don'ts: held or slipped; left blank means not logged
+  const tdIds = String(fd.get("todontIds") ?? "").split(",").filter(Boolean).slice(0, 100);
+  if (tdIds.length) {
+    const own = await db.select({ id: todonts.id }).from(todonts).where(and(eq(todonts.userId, user.id), inArray(todonts.id, tdIds))).catch(() => []);
+    for (const { id } of own) {
+      const v = str(fd, `td_${id}`);
+      if (v !== "held" && v !== "slipped") continue;
+      const held = v === "held";
+      await db
+        .insert(todontLogs)
+        .values({ userId: user.id, todontId: id, day, held })
+        .onConflictDoUpdate({ target: [todontLogs.userId, todontLogs.todontId, todontLogs.day], set: { held, updatedAt: new Date() } });
+    }
+  }
   // 3. the ritual itself
   await db
     .insert(challengeRituals)
     .values({ userId: user.id, day, kind: "evening", answers })
     .onConflictDoUpdate({ target: [challengeRituals.userId, challengeRituals.day, challengeRituals.kind], set: { answers, completedAt: new Date() } });
   refresh();
+  for (const p of ["/today", "/habits", "/todont", "/dashboard"]) revalidatePath(p);
   redirect("/challenge?tab=today&ritual=evening");
 }
 

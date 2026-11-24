@@ -12,6 +12,9 @@ export function ReviewTab({ reviews, setbacks, st, today, saved }: { reviews: Re
   const f = (v: number | null, d = 1) => (v === null ? "–" : v.toFixed(d));
   return (
     <div className="space-y-4">
+      <a href="/review" className="block rounded-xl border border-indigo-800/50 bg-indigo-500/10 px-4 py-3 text-sm text-indigo-100 active:opacity-80">
+        Review once: the <span className="font-semibold underline">Weekly review</span> page now saves your Sunday review here too. Use the form below only if you want the challenge review on its own.
+      </a>
       <Card>
         <h2 className="mb-2 text-sm font-semibold text-neutral-100">Sunday review · 30 minutes</h2>
         <ol className="list-decimal space-y-1 pl-5 text-sm text-neutral-300">

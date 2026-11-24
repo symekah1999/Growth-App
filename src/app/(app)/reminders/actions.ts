@@ -44,11 +44,12 @@ export async function saveReminderSettings(formData: FormData) {
   const user = await requireUser();
   const morningOn = formData.get("morningOn") === "on";
   const eveningOn = formData.get("eveningOn") === "on";
+  const deepOn = formData.get("deepOn") === "on";
   try {
     await db
       .insert(reminderSettings)
-      .values({ userId: user.id, morningOn, eveningOn })
-      .onConflictDoUpdate({ target: reminderSettings.userId, set: { morningOn, eveningOn, updatedAt: new Date() } });
+      .values({ userId: user.id, morningOn, eveningOn, deepOn })
+      .onConflictDoUpdate({ target: reminderSettings.userId, set: { morningOn, eveningOn, deepOn, updatedAt: new Date() } });
   } catch {
     // table missing: page shows the setup note
   }

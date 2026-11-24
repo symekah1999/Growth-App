@@ -6,11 +6,12 @@ import { todontLogs, todonts } from "@/db/schema-life";
 import { TODONT_CATEGORIES, TODONT_SUGGESTIONS } from "@/db/seed-data/life";
 import { requireUser } from "@/lib/auth";
 import { nairobiToday } from "@/lib/challenge";
-import { addDaysISO, formatDate } from "@/lib/utils";
+import { addDaysISO, attempt, formatDate } from "@/lib/utils";
 import { photoUrl } from "@/lib/images";
 import { Button, Card, Input, PageHeader, Select, Textarea } from "@/components/ui";
 import { Folder, groupBy, monthLabel } from "@/components/Folders";
-import { addSuggestedTodont, addTodont, deleteTodont, logTodont, toggleTodontActive } from "./actions";
+import { challengePlan } from "@/db/schema-challenge";
+import { addSuggestedTodont, addTodont, addViceTodont, deleteTodont, logTodont, toggleTodontActive } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +44,7 @@ export default async function TodontPage() {
   } catch {
     missing = true;
   }
+  const vices = ((await attempt(db.select({ vices: challengePlan.vices }).from(challengePlan).where(eq(challengePlan.userId, user.id)), []))[0]?.vices ?? []) as string[];
   const active = items.filter((t) => t.active);
   const byItem = new Map<string, Log[]>();
   for (const l of logs) byItem.set(l.todontId, [...(byItem.get(l.todontId) ?? []), l]);
@@ -149,6 +151,31 @@ export default async function TodontPage() {
           </div>
         </form>
       </Card>
+
+      {vices.length > 0 && (
+        <Card className="mb-6 border-indigo-800/40">
+          <h2 className="text-sm font-semibold text-neutral-100">From your challenge vice list</h2>
+          <p className="mb-2 mt-0.5 text-xs text-neutral-500">Track your vices here too, so &ldquo;stayed clean&rdquo; has a daily Held / Slipped record.</p>
+          <ul className="space-y-1.5">
+            {vices.map((v) => {
+              const added = items.some((t) => t.text.toLowerCase() === `don't: ${v}`.toLowerCase());
+              return (
+                <li key={v} className="flex items-center justify-between gap-3 rounded-lg border border-neutral-800 px-3 py-2 text-sm text-neutral-200">
+                  <span className="min-w-0">{v}</span>
+                  {added ? (
+                    <span className="shrink-0 text-xs text-emerald-300">Tracking ✓</span>
+                  ) : (
+                    <form action={addViceTodont}>
+                      <input type="hidden" name="vice" value={v} />
+                      <button type="submit" disabled={missing} className="h-8 shrink-0 rounded-lg border border-neutral-700 px-3 text-xs text-neutral-200 hover:bg-neutral-800 disabled:opacity-40">Add</button>
+                    </form>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </Card>
+      )}
 
       <section id="suggestions" className="mb-6 scroll-mt-20">
         <h2 className="mb-1 text-sm font-semibold text-neutral-100">Suggested to-don&apos;ts</h2>

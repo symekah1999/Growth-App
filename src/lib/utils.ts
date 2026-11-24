@@ -58,3 +58,12 @@ export function addDaysISO(iso: string, n: number) {
 export function toISODate(d: Date | string) {
   return (typeof d === "string" ? new Date(d) : d).toISOString().slice(0, 10);
 }
+
+/** Await a query, returning `fallback` instead of throwing (e.g. when a table hasn't been created yet). */
+export async function attempt<T, F>(q: PromiseLike<T>, fallback: F): Promise<T | F> {
+  try {
+    return await q;
+  } catch {
+    return fallback;
+  }
+}

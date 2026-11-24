@@ -22,5 +22,6 @@ export const reminderSettings = pgTable("reminder_settings", {
   userId: uuid("user_id").primaryKey(),
   morningOn: boolean("morning_on").notNull().default(true),
   eveningOn: boolean("evening_on").notNull().default(true),
+  deepOn: boolean("deep_on").notNull().default(true), // added in drizzle/manual/life-2.sql
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

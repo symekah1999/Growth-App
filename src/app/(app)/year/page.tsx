@@ -131,6 +131,7 @@ export default async function YearPage({ searchParams }: { searchParams: Promise
           <div className="rounded-lg bg-neutral-900 py-2"><p className="text-base font-semibold text-neutral-50">{avgProgress}%</p><p className="text-neutral-500">goal progress</p></div>
           <div className="rounded-lg bg-neutral-900 py-2"><p className="text-base font-semibold text-neutral-50">{bucketDone}/{Math.max(bucket.length, plan.age)}</p><p className="text-neutral-500">{plan.age} for {plan.age}</p></div>
         </div>
+        <Link href={`/year/recap?age=${plan.age}`} className="mt-3 inline-block text-xs text-amber-300 underline">{info.finished ? `Your Year ${plan.age} recap` : "See the recap so far"}</Link>
         {data.plans.length > 1 && (
           <div className="mt-3 flex flex-wrap gap-1.5 text-xs">
             {data.plans.map((p) => <Link key={p.age} href={`/year?age=${p.age}`} className={`rounded-full border px-2.5 py-0.5 ${p.age === plan.age ? "border-indigo-500 text-indigo-200" : "border-neutral-800 text-neutral-400"}`}>Year {p.age}</Link>)}

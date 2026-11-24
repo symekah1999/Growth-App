@@ -1,6 +1,16 @@
 {
   "crons": [
-    { "path": "/api/cron/reminders?slot=morning", "schedule": "0 5 * * *" },
-    { "path": "/api/cron/reminders?slot=evening", "schedule": "0 17 * * *" }
+    {
+      "path": "/api/cron/reminders?slot=morning",
+      "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/reminders?slot=deep",
+      "schedule": "30 6 * * *"
+    },
+    {
+      "path": "/api/cron/reminders?slot=evening",
+      "schedule": "0 17 * * *"
+    }
   ]
 }

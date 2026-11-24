@@ -19,6 +19,10 @@ export default async function MantrasPage() {
       <PageHeader
         image={photoUrl("mantras")} title="Mantras & Non-Negotiable Values" subtitle="The words you return to when it's hard to think straight." />
 
+      <a href="/affirmations" className="mb-4 block rounded-xl border border-amber-800/40 bg-amber-950/10 px-4 py-3 text-sm text-amber-100 active:opacity-80">
+        Looking for longer words to speak over yourself? The <span className="font-semibold underline">Affirmations</span> library has 44 in-depth affirmations; tap &ldquo;Make mantra&rdquo; on any of them to add it here.
+      </a>
+
       <div className="grid gap-6 lg:grid-cols-2">
         <div>
           <h2 className="mb-3 text-sm font-medium text-neutral-300">Mantras</h2>
