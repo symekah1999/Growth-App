@@ -30,6 +30,7 @@ import {
   Ban,
   Sun,
   ScrollText,
+  Network,
   type LucideIcon,
 } from "lucide-react";
 
@@ -43,6 +44,7 @@ export const NAV_SECTIONS: NavSection[] = [
     links: [
       { href: "/today", label: "Today", icon: Sun },
       { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
+      { href: "/map", label: "System map", icon: Network },
       { href: "/challenge/ritual", label: "Daily ritual", icon: Sunrise },
       { href: "/entries", label: "Entries", icon: ScrollText },
       { href: "/checkin", label: "Daily check-in", icon: ClipboardCheck },

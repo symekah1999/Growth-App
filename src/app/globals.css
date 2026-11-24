@@ -41,3 +41,26 @@ body {
   top: 0;
   padding-top: env(safe-area-inset-top);
 }
+
+/* System map: glowing stem with data pulses travelling down it, and a faint HUD grid. */
+.stem-line {
+  background:
+    linear-gradient(180deg, transparent 0%, rgba(103, 232, 249, 0.95) 50%, transparent 100%) 0 0 / 100% 160px no-repeat,
+    linear-gradient(180deg, rgba(34, 211, 238, 0.55), rgba(16, 185, 129, 0.35));
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.35);
+  animation: stem-flow 3.2s linear infinite;
+}
+@keyframes stem-flow {
+  from { background-position: 0 -160px, 0 0; }
+  to { background-position: 0 calc(100% + 160px), 0 0; }
+}
+.hud-grid {
+  background-image:
+    linear-gradient(rgba(34, 211, 238, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 211, 238, 0.12) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(180deg, black, transparent 85%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .stem-line { animation: none; }
+}

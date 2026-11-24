@@ -9,6 +9,7 @@ export const OPEN_PALETTE_EVENT = "growth-os-open-palette";
 
 // Extra words that should find a page (e.g. "diary" finds Journal).
 const ALIASES: Record<string, string> = {
+  "/map": "stem robot hud control navigation sitemap all sections",
   "/journal": "diary notes write entries",
   "/gratitude": "thankful grateful thanks",
   "/habits": "routine streak daily",
